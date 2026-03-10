@@ -1,0 +1,27 @@
+# On tag push v*, create a release with a zip containing ONLY:
+#   chrome-extension/  premiere-extension/  README.md
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create release zip
+        run: |
+          zip -r auto-narration-${{ github.ref_name }}.zip chrome-extension premiere-extension README.md
+
+      - name: Create Release and upload zip
+        uses: softprops/action-gh-release@v2
+        with:
+          files: auto-narration-${{ github.ref_name }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

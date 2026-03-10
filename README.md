@@ -38,9 +38,9 @@ Check these once — then you can forget about them:
 ### Step 0: Download the project
 
 1. Open this link in your browser: [**Releases**](https://github.com/Dylanyz/auto-narration/releases).
-2. On the latest release, click **"Source code (zip)"** to download.
+2. On the latest release, download the **`auto-narration-v1.0.zip`** file (or the zip for the latest version) from the release assets. Do **not** use "Source code (zip)" — use the release zip.
 3. Unzip the file (double-click it). Put the folder somewhere easy to find (e.g. **Desktop**).
-4. Open that folder. You should see two folders inside: **`chrome-extension`** and **`premiere-extension`**.
+4. Open that folder. You should see two folders inside: **`chrome-extension`** and **`premiere-extension`**, plus **`README.md`**.
 
 **You’re good when:** You have one folder on your Desktop (or wherever) with `chrome-extension` and `premiere-extension` inside it.
 
