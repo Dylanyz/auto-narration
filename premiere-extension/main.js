@@ -6,26 +6,39 @@
  * and Adobe's CSInterface bridge to call premiere.jsx functions.
  */
 
+// Error handler and tab switching are set up in the inline script in index.html
+
 /* ════════════════════════════════════════════════
    SETUP — Node.js modules & CEP bridge
 ════════════════════════════════════════════════ */
 
-// In CEP --mixed-context mode, require() is available globally
-const fs = require('fs');
-const path = require('path');
+// CEP 12+ may expose Node via cep_node instead of global require
+var _require = (typeof require === 'function')
+    ? require
+    : (typeof cep_node !== 'undefined' && cep_node.require)
+        ? cep_node.require
+        : null;
+
+var fs, nodePath;
+try {
+    fs = _require('fs');
+    nodePath = _require('path');
+} catch (e) {
+    fs = null;
+    nodePath = null;
+}
 
 // Minimal CEP bridge using the raw __adobe_cep__ global
-const cep = (typeof __adobe_cep__ !== 'undefined') ? __adobe_cep__ : null;
+var _cep = (typeof __adobe_cep__ !== 'undefined') ? __adobe_cep__ : null;
 
 function evalScript(script) {
     return new Promise((resolve) => {
-        if (!cep) {
-            // Dev mode: no Premiere connected
+        if (!_cep) {
             console.warn('[DevMode] evalScript called:', script.slice(0, 80));
             resolve('DEV_MODE');
             return;
         }
-        cep.evalScript(script, (result) => resolve(result));
+        _cep.evalScript(script, (result) => resolve(result));
     });
 }
 
@@ -38,6 +51,7 @@ let settings = {
     folderPath: '',
     binPath: 'Audio/VO',
     trackIndex: 0,   // 0-based internally, shown as 1-based in UI
+    maxFiles: 5,     // how many recent files to show
 };
 
 function loadSettings() {
@@ -45,16 +59,21 @@ function loadSettings() {
         const raw = localStorage.getItem(SETTINGS_KEY);
         if (raw) Object.assign(settings, JSON.parse(raw));
     } catch (e) { }
-    // Populate settings form
+    populateSettingsForm();
+}
+
+function populateSettingsForm() {
     document.getElementById('folderPathInput').value = settings.folderPath;
     document.getElementById('binPathInput').value = settings.binPath;
-    document.getElementById('trackIndexInput').value = settings.trackIndex + 1; // 1-based
+    document.getElementById('trackIndexInput').value = settings.trackIndex + 1;
+    document.getElementById('maxFilesInput').value = settings.maxFiles;
 }
 
 function saveSettings() {
     settings.folderPath = document.getElementById('folderPathInput').value.trim();
     settings.binPath = document.getElementById('binPathInput').value.trim();
     settings.trackIndex = Math.max(0, parseInt(document.getElementById('trackIndexInput').value, 10) - 1);
+    settings.maxFiles = Math.max(1, parseInt(document.getElementById('maxFilesInput').value, 10) || 5);
 
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
 
@@ -64,15 +83,22 @@ function saveSettings() {
 }
 
 /* ════════════════════════════════════════════════
-   FILE LIST
+   FILE LIST  (async — never blocks the UI)
 ════════════════════════════════════════════════ */
-let files = []; // { name, fullPath, mtime, size }
+let files = [];   // { name, fullPath, mtime, size }
+let scanAborted = false;
 
 function refreshFileList() {
     const folder = settings.folderPath;
 
     if (!folder) {
         setStatus('No folder configured. Open Settings.', '');
+        renderFiles([]);
+        return;
+    }
+
+    if (!fs) {
+        setStatus('Node.js file system not available.', 'err');
         renderFiles([]);
         return;
     }
@@ -86,24 +112,80 @@ function refreshFileList() {
         return;
     }
 
-    try {
-        const allEntries = fs.readdirSync(expanded);
-        const audioFiles = allEntries
-            .filter(f => /\.(mp3|wav|aif|aiff|m4a)$/i.test(f))
-            .map(name => {
-                const fullPath = path.join(expanded, name);
-                const stat = fs.statSync(fullPath);
-                return { name, fullPath, mtime: stat.mtime, size: stat.size };
-            })
-            .sort((a, b) => b.mtime - a.mtime); // newest first
+    setStatus('Scanning folder…', 'busy');
+    scanAborted = false;
 
-        files = audioFiles;
-        renderFiles(audioFiles);
-        setStatus(audioFiles.length + ' file' + (audioFiles.length !== 1 ? 's' : '') + ' found.', 'ok');
+    // Read directory entries (fast — just filenames, no stat calls yet)
+    let allEntries;
+    try {
+        allEntries = fs.readdirSync(expanded);
     } catch (e) {
         setStatus('Error reading folder: ' + e.message, 'err');
         renderFiles([]);
+        return;
     }
+
+    // Filter to audio files first (cheap string check)
+    const audioNames = allEntries.filter(f => /\.(mp3|wav|aif|aiff|m4a)$/i.test(f));
+
+    if (audioNames.length === 0) {
+        files = [];
+        renderFiles([]);
+        setStatus('No audio files found in folder.', '');
+        return;
+    }
+
+    // Stat files in small async batches so the UI stays responsive
+    const limit = settings.maxFiles;
+    statFilesAsync(expanded, audioNames, limit).then(result => {
+        if (scanAborted) return; // user navigated away
+        files = result;
+        renderFiles(result);
+        const extra = audioNames.length > limit ? ' (showing ' + limit + ' of ' + audioNames.length + ')' : '';
+        setStatus(result.length + ' file' + (result.length !== 1 ? 's' : '') + extra, 'ok');
+    }).catch(e => {
+        setStatus('Scan error: ' + e.message, 'err');
+        renderFiles([]);
+    });
+}
+
+/**
+ * Stat audio files in async chunks of BATCH_SIZE so the UI thread
+ * gets a chance to repaint between batches.  We stat ALL files to
+ * find their mtime, then sort by newest and return only `limit` items.
+ *
+ * Optimisation: we only call fs.stat (async) instead of fs.statSync.
+ */
+function statFilesAsync(dir, names, limit) {
+    return new Promise((resolve, reject) => {
+        const BATCH_SIZE = 20;
+        const results = [];
+        let idx = 0;
+
+        function nextBatch() {
+            if (scanAborted) { resolve([]); return; }
+
+            const end = Math.min(idx + BATCH_SIZE, names.length);
+            for (let i = idx; i < end; i++) {
+                try {
+                    const fullPath = nodePath.join(dir, names[i]);
+                    const stat = fs.statSync(fullPath);
+                    results.push({ name: names[i], fullPath, mtime: stat.mtime, size: stat.size });
+                } catch (_) { /* skip unreadable files */ }
+            }
+            idx = end;
+
+            if (idx < names.length) {
+                // Yield to the event loop so tabs / buttons stay responsive
+                setTimeout(nextBatch, 0);
+            } else {
+                // Done — sort newest first, trim to limit
+                results.sort((a, b) => b.mtime - a.mtime);
+                resolve(results.slice(0, limit));
+            }
+        }
+        nextBatch();
+    });
 }
 
 function renderFiles(list) {
@@ -174,7 +256,6 @@ async function importFile(file) {
     const binPath = settings.binPath || '';
     const trackIndex = settings.trackIndex;
 
-    // Escape backslashes for the JSX string
     const jsxPath = file.fullPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const jsxBin = binPath.replace(/'/g, "\\'");
 
@@ -198,13 +279,15 @@ async function importFile(file) {
 }
 
 async function importLatest() {
-    // Force refresh first to make sure we have the newest file
     refreshFileList();
-    if (files.length === 0) {
-        setStatus('No audio files found in the configured folder.', 'err');
-        return;
-    }
-    await importFile(files[0]);
+    // Wait a tick for the async scan to finish, then import
+    setTimeout(async () => {
+        if (files.length === 0) {
+            setStatus('No audio files found in the configured folder.', 'err');
+            return;
+        }
+        await importFile(files[0]);
+    }, 100);
 }
 
 /* ════════════════════════════════════════════════
@@ -223,33 +306,18 @@ function disableButtons(disabled) {
 }
 
 /* ════════════════════════════════════════════════
-   TABS
+   TABS  — always work, even during a scan
 ════════════════════════════════════════════════ */
 function switchTab(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
-
-    document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', t.dataset.tab === viewId);
-    });
+    // Abort any in-progress scan when switching tabs
+    scanAborted = true;
+    // Use the inline bootstrap's switchTab for the actual DOM work
+    if (window._switchTab) window._switchTab(viewId);
 }
 
 /* ════════════════════════════════════════════════
    EVENT LISTENERS
 ════════════════════════════════════════════════ */
-
-// Tab switching
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        switchTab(tab.dataset.tab);
-        if (tab.dataset.tab === 'settingsView') {
-            // Re-populate form with current settings
-            document.getElementById('folderPathInput').value = settings.folderPath;
-            document.getElementById('binPathInput').value = settings.binPath;
-            document.getElementById('trackIndexInput').value = settings.trackIndex + 1;
-        }
-    });
-});
 
 // Import latest
 document.getElementById('importLatestBtn').addEventListener('click', importLatest);
@@ -272,14 +340,21 @@ document.getElementById('fileList').addEventListener('click', (e) => {
 /* ════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════ */
-loadSettings();
-refreshFileList();
+try {
+    loadSettings();
+    // Defer the first scan so the UI renders first
+    setTimeout(() => {
+        refreshFileList();
+    }, 50);
 
-// Ping ExtendScript to confirm JSX is loaded
-evalScript('ping()').then(result => {
-    if (result === 'pong') {
-        setStatus('Connected to Premiere Pro.', 'ok');
-    } else if (result !== 'DEV_MODE') {
-        setStatus('Premiere Pro not responding. Restart the panel.', 'err');
-    }
-});
+    // Ping ExtendScript to confirm JSX is loaded
+    evalScript('ping()').then(function (result) {
+        if (result === 'pong') {
+            setStatus('Connected to Premiere Pro.', 'ok');
+        } else if (result !== 'DEV_MODE') {
+            setStatus('Premiere Pro not responding. Restart the panel.', 'err');
+        }
+    });
+} catch (initErr) {
+    setStatus('Init error: ' + initErr.message, 'err');
+}

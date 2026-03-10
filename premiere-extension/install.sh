@@ -17,7 +17,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 # ── 1. Enable unsigned extension loading for all CEP versions
 echo ""
 echo "► Enabling CEP debug mode (allows unsigned extensions)…"
-for version in 9 10 11; do
+for version in 9 10 11 12; do
   defaults write "com.adobe.CSXS.$version" PlayerDebugMode 1
 done
 echo "  Done."

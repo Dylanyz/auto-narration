@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auto Narration Bridge</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
         *,
         *::before,
         *::after {
@@ -556,6 +554,16 @@
                             audio track (A1).</span>
                     </div>
 
+                    <hr class="divider">
+
+                    <!-- Max files to show -->
+                    <div class="field">
+                        <label>Max Files to Show</label>
+                        <input type="number" id="maxFilesInput" value="5" min="1" max="100">
+                        <span class="field-hint">How many recent audio files to display in the file list. Lower values
+                            load faster if your folder has many files.</span>
+                    </div>
+
                 </div>
             </div>
 
@@ -566,7 +574,51 @@
 
     </div>
 
-    <script src="main.js"></script>
+    <script>
+        /* ── Inline bootstrap: tabs + error display always work ── */
+        (function () {
+            // Global error handler
+            window.onerror = function (msg, url, line) {
+                try {
+                    document.getElementById('statusText').textContent = 'Error: ' + msg + ' (line ' + line + ')';
+                    document.getElementById('statusBar').className = 'status-bar err';
+                } catch (_) { }
+                return false;
+            };
+
+            // Tab switching — always works
+            function switchTab(viewId) {
+                var views = document.querySelectorAll('.view');
+                for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+                document.getElementById(viewId).classList.add('active');
+
+                var tabs = document.querySelectorAll('.tab');
+                for (var j = 0; j < tabs.length; j++) {
+                    tabs[j].classList.toggle('active', tabs[j].getAttribute('data-tab') === viewId);
+                }
+            }
+            window._switchTab = switchTab;
+
+            var tabs = document.querySelectorAll('.tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].addEventListener('click', (function (t) {
+                    return function () { switchTab(t.getAttribute('data-tab')); };
+                })(tabs[i]));
+            }
+
+            // Show ready state
+            document.getElementById('statusText').textContent = 'Panel loaded. Loading scripts…';
+
+            // Dynamically load main.js so parse errors are caught
+            var s = document.createElement('script');
+            s.src = 'main.js';
+            s.onerror = function () {
+                document.getElementById('statusText').textContent = 'Failed to load main.js';
+                document.getElementById('statusBar').className = 'status-bar err';
+            };
+            document.body.appendChild(s);
+        })();
+    </script>
 </body>
 
 </html>

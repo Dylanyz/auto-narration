@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionManifest
-  Version="7.0"
+  Version="6.0"
   ExtensionBundleId="com.autonarration.premierebridge"
   ExtensionBundleVersion="1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -18,7 +18,7 @@
       <Locale Code="All"/>
     </LocaleList>
     <RequiredRuntimeList>
-      <RequiredRuntime Name="CSXS" Version="10.0"/>
+      <RequiredRuntime Name="CSXS" Version="9.0"/>
     </RequiredRuntimeList>
   </ExecutionEnvironment>
 

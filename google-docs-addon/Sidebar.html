@@ -404,11 +404,7 @@
       </div>
     </div>
 
-    <!-- No folder warning (hidden by default) -->
-    <div id="noFolderWarning"
-      style="display:none;font-size:12px;color:var(--warning);background:#2d2a1a;padding:10px 12px;border-radius:8px;">
-      ⚠️ No save folder selected. Open Settings and pick a folder.
-    </div>
+    <!-- No folder warning removed — files go to Downloads automatically -->
 
     <!-- Generate button -->
     <button class="btn btn-primary" id="generateBtn" disabled>
@@ -472,19 +468,7 @@
 
     <hr class="divider">
 
-    <!-- Save Folder -->
-    <div class="field">
-      <label>Save Folder</label>
-      <div class="folder-row">
-        <input type="text" id="folderNameDisplay" placeholder="No folder selected" readonly>
-        <button class="btn btn-secondary" id="pickFolderBtn"
-          style="width:auto;padding:9px 12px;font-size:12px;">Browse…</button>
-      </div>
-      <span class="folder-status" id="folderStatus">Not set</span>
-      <span class="api-hint">
-        Files will be saved as <strong>AutoVO_{timestamp}.mp3</strong>
-      </span>
-    </div>
+    <!-- Save Folder removed: files download to your browser's Downloads folder automatically -->
 
     <div style="display:flex;gap:8px;padding-top:4px;">
       <button class="btn btn-secondary" id="cancelSettingsBtn" style="flex:1;">Cancel</button>
@@ -502,17 +486,15 @@
       voiceId: '',
       voiceName: '',
       modelId: 'eleven_multilingual_v2',
-      dirHandle: null,       // FileSystemDirectoryHandle (in-memory, session only)
-      folderName: '',        // display name for the folder
       selectedText: '',
     };
 
     // Load settings from Google PropertiesService (survives sidebar close)
     function loadState() {
       if (typeof google === 'undefined' || !google.script) {
-        // Dev/test mode: fall back to sessionStorage
+        // Dev/test mode: fall back to localStorage
         try {
-          const saved = JSON.parse(sessionStorage.getItem('autoNarrationSettings') || '{}');
+          const saved = JSON.parse(localStorage.getItem('autoNarrationSettings') || '{}');
           Object.assign(state, saved);
         } catch (e) { }
         return;
@@ -523,7 +505,6 @@
           state.voiceId = props.voiceId || '';
           state.voiceName = props.voiceName || '';
           state.modelId = props.modelId || 'eleven_multilingual_v2';
-          state.folderName = props.folderName || '';
           // Restore voice dropdown option if we have a saved voice
           if (state.voiceId) ensureVoiceOption(state.voiceId, state.voiceName);
           updateGenerateBtn();
@@ -538,13 +519,12 @@
         voiceId: state.voiceId,
         voiceName: state.voiceName,
         modelId: state.modelId,
-        folderName: state.folderName,
       };
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.setUserProperties(props);
       } else {
         // Dev/test mode fallback
-        try { sessionStorage.setItem('autoNarrationSettings', JSON.stringify(props)); } catch (e) { }
+        try { localStorage.setItem('autoNarrationSettings', JSON.stringify(props)); } catch (e) { }
       }
     }
 
@@ -592,10 +572,8 @@
     }
 
     function updateGenerateBtn() {
-      const ready = state.selectedText && state.apiKey && state.voiceId && state.dirHandle;
+      const ready = state.apiKey && state.voiceId;
       document.getElementById('generateBtn').disabled = !ready;
-      document.getElementById('noFolderWarning').style.display =
-        (state.apiKey && state.voiceId && !state.dirHandle) ? 'block' : 'none';
     }
 
     /* ════════════════════════════════════════════
@@ -633,7 +611,6 @@
       // Populate form with current state
       document.getElementById('apiKeyInput').value = state.apiKey;
       document.getElementById('modelSelect').value = state.modelId;
-      refreshFolderStatus();
       // Populate voice dropdown
       if (state.voiceId) {
         ensureVoiceOption(state.voiceId, state.voiceName);
@@ -650,25 +627,6 @@
         opt.value = id;
         opt.textContent = name || id;
         sel.appendChild(opt);
-      }
-    }
-
-    function refreshFolderStatus() {
-      const statusEl = document.getElementById('folderStatus');
-      const displayEl = document.getElementById('folderNameDisplay');
-      if (state.dirHandle) {
-        statusEl.textContent = 'Folder selected ✓';
-        statusEl.className = 'folder-status set';
-        displayEl.value = state.dirHandle.name;
-      } else if (state.folderName) {
-        // We have a remembered name but need to re-pick (new session)
-        statusEl.textContent = 'Re-pick required — last was: ' + state.folderName;
-        statusEl.className = 'folder-status';
-        displayEl.value = '';
-      } else {
-        statusEl.textContent = 'Not set';
-        statusEl.className = 'folder-status';
-        displayEl.value = '';
       }
     }
 
@@ -727,32 +685,65 @@
     }
 
     /* ════════════════════════════════════════════
-       SAVE TO FOLDER via File System Access API
+       DOWNLOAD AUDIO  (standard browser download — works in iframe sandboxes)
     ════════════════════════════════════════════ */
     async function writeAudioToFolder(audioBlob, filename) {
-      if (!state.dirHandle) throw new Error('No folder selected.');
-
-      // Re-verify permission (may prompt once per session)
-      const perm = await state.dirHandle.queryPermission({ mode: 'readwrite' });
-      if (perm !== 'granted') {
-        const req = await state.dirHandle.requestPermission({ mode: 'readwrite' });
-        if (req !== 'granted') throw new Error('Folder permission denied.');
-      }
-
-      const fileHandle = await state.dirHandle.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(audioBlob);
-      await writable.close();
+      // Create a temporary object URL and click a hidden anchor to download.
+      // This saves to the user's browser Downloads folder.
+      // (showDirectoryPicker is blocked in cross-origin iframes like Google Docs sidebars)
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Revoke after a short delay to let the download start
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
 
     /* ════════════════════════════════════════════
        GENERATE AUDIO
     ════════════════════════════════════════════ */
     async function generateAudio() {
-      if (!state.selectedText || !state.apiKey || !state.voiceId || !state.dirHandle) return;
+      if (!state.apiKey || !state.voiceId) return;
 
       const btn = document.getElementById('generateBtn');
       btn.disabled = true;
+
+      // Always grab the latest selection from the doc first
+      setStatusGenerating('Reading selection…');
+      try {
+        const text = await new Promise((resolve, reject) => {
+          if (typeof google === 'undefined' || !google.script) {
+            // Dev mode — use whatever's already in state
+            resolve(state.selectedText || '');
+            return;
+          }
+          google.script.run
+            .withSuccessHandler(function (res) {
+              if (res.success && res.text) {
+                resolve(res.text);
+              } else {
+                reject(new Error(res.error || 'No text selected. Highlight some text first.'));
+              }
+            })
+            .withFailureHandler(function (err) {
+              reject(new Error('Could not read selection — try refreshing the sidebar.'));
+            })
+            .getSelectedText();
+        });
+
+        state.selectedText = text;
+        updatePreview(text);
+      } catch (e) {
+        setStatus(e.message, 'error');
+        btn.disabled = false;
+        updateGenerateBtn();
+        return;
+      }
+
       setStatusGenerating('Generating audio…');
 
       try {
@@ -839,7 +830,6 @@
     document.getElementById('cancelSettingsBtn').addEventListener('click', () => showView('mainView'));
     document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
     document.getElementById('loadVoicesBtn').addEventListener('click', loadVoices);
-    document.getElementById('pickFolderBtn').addEventListener('click', pickFolder);
     document.getElementById('generateBtn').addEventListener('click', generateAudio);
     document.getElementById('refreshPreviewBtn').addEventListener('click', fetchSelectedText);
 
@@ -848,13 +838,16 @@
     ════════════════════════════════════════════ */
     loadState();
 
-    // Check if File System Access API is available
-    if (!window.showDirectoryPicker) {
-      setStatus('Browser does not support directory picker. Use Chrome/Edge.', 'error');
+    // Check if we're inside Google Docs (where google.script.run is available)
+    if (typeof google === 'undefined' || !google.script) {
+      setStatus('Ready (dev mode — no doc connected)', '');
     }
 
     updateGenerateBtn();
-    fetchSelectedText();
+    // Only auto-fetch selection if inside Google Docs
+    if (typeof google !== 'undefined' && google.script) {
+      fetchSelectedText();
+    }
   </script>
 </body>
 
