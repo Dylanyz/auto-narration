@@ -65,3 +65,18 @@ function getSelectedText() {
 
   return { success: true, text: text };
 }
+
+/**
+ * Persist settings to Google's PropertiesService.
+ * PropertiesService survives sidebar close/reopen — unlike sessionStorage.
+ * Values are stored per Google account (UserProperties).
+ */
+function setUserProperties(props) {
+  const store = PropertiesService.getUserProperties();
+  store.setProperties(props);
+}
+
+function getUserProperties() {
+  const store = PropertiesService.getUserProperties();
+  return store.getProperties();
+}

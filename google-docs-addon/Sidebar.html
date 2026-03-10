@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <base target="_top">
   <meta charset="UTF-8">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       --bg: #1c1c1e;
@@ -34,117 +41,326 @@
     }
 
     /* ── Views ─────────────────────────────────────── */
-    .view { display: none; padding: 16px; animation: fadeIn .15s ease; }
-    .view.active { display: flex; flex-direction: column; gap: 14px; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .view {
+      display: none;
+      padding: 16px;
+      animation: fadeIn .15s ease;
+    }
+
+    .view.active {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     /* ── Header ─────────────────────────────────────── */
     .header {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 14px 16px 0;
     }
-    .header-title { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
     .icon-btn {
-      background: none; border: none; cursor: pointer; padding: 6px;
-      color: var(--text-3); border-radius: 6px; display: flex; align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      color: var(--text-3);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
       transition: color .15s, background .15s;
     }
-    .icon-btn:hover { color: var(--text); background: var(--surface2); }
-    .icon-btn svg { width: 18px; height: 18px; }
+
+    .icon-btn:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
 
     /* ── Status chip ─────────────────────────────────── */
     .status-chip {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--surface); border-radius: var(--radius);
-      padding: 10px 12px; font-size: 12px; color: var(--text-2);
-      min-height: 42px; transition: background .2s;
-    }
-    .status-chip.generating { background: color-mix(in srgb, var(--accent) 15%, var(--surface)); }
-    .status-chip.success    { background: color-mix(in srgb, var(--success) 15%, var(--surface)); }
-    .status-chip.error      { background: color-mix(in srgb, var(--error) 12%, var(--surface)); }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-2);
+      min-height: 42px;
       transition: background .2s;
     }
-    .status-chip.generating .status-dot { background: var(--accent); animation: pulse 1s infinite; }
-    .status-chip.success    .status-dot { background: var(--success); }
-    .status-chip.error      .status-dot { background: var(--error); }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+
+    .status-chip.generating {
+      background: #1a2d3f;
+    }
+
+    .status-chip.success {
+      background: #1a2f24;
+    }
+
+    .status-chip.error {
+      background: #2f1e1e;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-3);
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+
+    .status-chip.generating .status-dot {
+      background: var(--accent);
+      animation: pulse 1s infinite;
+    }
+
+    .status-chip.success .status-dot {
+      background: var(--success);
+    }
+
+    .status-chip.error .status-dot {
+      background: var(--error);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .3;
+      }
+    }
 
     /* ── Selected text preview ────────────────────────── */
     .preview-box {
-      background: var(--surface); border-radius: var(--radius);
-      padding: 10px 12px; color: var(--text-2); font-size: 12px;
-      max-height: 80px; overflow: hidden; position: relative;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--text-2);
+      font-size: 12px;
+      max-height: 80px;
+      overflow: hidden;
+      position: relative;
       border: 1px solid var(--border);
       line-height: 1.6;
     }
+
     .preview-box::after {
-      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: 24px;
       background: linear-gradient(transparent, var(--surface));
     }
-    .preview-label { font-size: 11px; color: var(--text-3); margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+
+    .preview-label {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-bottom: 4px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
 
     /* ── Buttons ─────────────────────────────────────── */
     .btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 11px 16px; border-radius: var(--radius); border: none;
-      cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500;
-      width: 100%; transition: all .15s; user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      width: 100%;
+      transition: all .15s;
+      user-select: none;
     }
+
     .btn-primary {
-      background: var(--accent); color: #fff;
+      background: var(--accent);
+      color: #fff;
     }
-    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
-    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
     .btn-secondary {
-      background: var(--surface); color: var(--text-2);
+      background: var(--surface);
+      color: var(--text-2);
       border: 1px solid var(--border);
     }
-    .btn-secondary:hover { background: var(--surface2); color: var(--text); }
-    .btn svg { width: 16px; height: 16px; }
+
+    .btn-secondary:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
 
     /* ── Settings form ─────────────────────────────────── */
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
-    .field input, .field select {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 9px 11px; color: var(--text);
-      font-family: inherit; font-size: 13px; outline: none; width: 100%;
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .field input,
+    .field select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
       transition: border-color .15s;
     }
-    .field input:focus, .field select:focus { border-color: var(--accent); }
-    .field input::placeholder { color: var(--text-3); }
-    .field select option { background: var(--surface2); }
 
-    .folder-row { display: flex; gap: 8px; }
-    .folder-row input { flex: 1; }
-    .folder-row .btn { width: auto; padding: 9px 12px; font-size: 12px; }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field input::placeholder {
+      color: var(--text-3);
+    }
+
+    .field select option {
+      background: var(--surface2);
+    }
+
+    .folder-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .folder-row input {
+      flex: 1;
+    }
+
+    .folder-row .btn {
+      width: auto;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
 
     .api-hint {
-      font-size: 11px; color: var(--text-3); line-height: 1.5;
+      font-size: 11px;
+      color: var(--text-3);
+      line-height: 1.5;
     }
-    .api-hint a { color: var(--accent); text-decoration: none; }
-    .divider { height: 1px; background: var(--border); border: none; }
 
-    .settings-save-row { display: flex; gap: 8px; }
-    .settings-save-row .btn { flex: 1; }
+    .api-hint a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      border: none;
+    }
+
+    .settings-save-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .settings-save-row .btn {
+      flex: 1;
+    }
 
     /* ── Folder status ─────────────────────────────────── */
-    .folder-status { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
-    .folder-status.set { color: var(--success); }
-    .folder-status.set::before { content: '✓ '; }
+    .folder-status {
+      font-size: 12px;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .folder-status.set {
+      color: var(--success);
+    }
+
+    .folder-status.set::before {
+      content: '✓ ';
+    }
 
     /* ── Loading spinner ─────────────────────────────────── */
     .spinner {
-      width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.2);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin .6s linear infinite; flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, .2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <!-- ─── Header ─────────────────────────── -->
@@ -153,14 +369,19 @@
     <div style="display:flex;gap:4px;">
       <button class="icon-btn" id="refreshPreviewBtn" title="Re-read selection">
         <!-- refresh icon -->
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
         </svg>
       </button>
       <button class="icon-btn" id="settingsBtn" title="Settings">
         <!-- gear icon -->
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
       </button>
     </div>
@@ -184,14 +405,17 @@
     </div>
 
     <!-- No folder warning (hidden by default) -->
-    <div id="noFolderWarning" style="display:none;font-size:12px;color:var(--warning);background:color-mix(in srgb,var(--warning) 10%,var(--surface));padding:10px 12px;border-radius:8px;">
+    <div id="noFolderWarning"
+      style="display:none;font-size:12px;color:var(--warning);background:#2d2a1a;padding:10px 12px;border-radius:8px;">
       ⚠️ No save folder selected. Open Settings and pick a folder.
     </div>
 
     <!-- Generate button -->
     <button class="btn btn-primary" id="generateBtn" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
       </svg>
       Generate Audio
     </button>
@@ -204,8 +428,10 @@
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:15px;font-weight:600;">Settings</span>
       <button class="icon-btn" id="closeSettingsBtn" title="Back">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </div>
@@ -228,7 +454,8 @@
         <select id="voiceSelect" style="flex:1;">
           <option value="">— enter API key to load voices —</option>
         </select>
-        <button class="btn btn-secondary" id="loadVoicesBtn" style="width:auto;padding:9px 12px;font-size:12px;">Load</button>
+        <button class="btn btn-secondary" id="loadVoicesBtn"
+          style="width:auto;padding:9px 12px;font-size:12px;">Load</button>
       </div>
       <span class="api-hint" id="voiceHint"></span>
     </div>
@@ -250,7 +477,8 @@
       <label>Save Folder</label>
       <div class="folder-row">
         <input type="text" id="folderNameDisplay" placeholder="No folder selected" readonly>
-        <button class="btn btn-secondary" id="pickFolderBtn" style="width:auto;padding:9px 12px;font-size:12px;">Browse…</button>
+        <button class="btn btn-secondary" id="pickFolderBtn"
+          style="width:auto;padding:9px 12px;font-size:12px;">Browse…</button>
       </div>
       <span class="folder-status" id="folderStatus">Not set</span>
       <span class="api-hint">
@@ -279,27 +507,45 @@
       selectedText: '',
     };
 
-    // Restore non-handle settings from sessionStorage
+    // Load settings from Google PropertiesService (survives sidebar close)
     function loadState() {
-      try {
-        const saved = JSON.parse(sessionStorage.getItem('autoNarrationSettings') || '{}');
-        state.apiKey    = saved.apiKey    || '';
-        state.voiceId   = saved.voiceId   || '';
-        state.voiceName = saved.voiceName || '';
-        state.modelId   = saved.modelId   || 'eleven_multilingual_v2';
-        state.folderName = saved.folderName || '';
-        // dirHandle cannot survive serialisation — must re-pick each session
-      } catch (e) {}
+      if (typeof google === 'undefined' || !google.script) {
+        // Dev/test mode: fall back to sessionStorage
+        try {
+          const saved = JSON.parse(sessionStorage.getItem('autoNarrationSettings') || '{}');
+          Object.assign(state, saved);
+        } catch (e) { }
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function (props) {
+          state.apiKey = props.apiKey || '';
+          state.voiceId = props.voiceId || '';
+          state.voiceName = props.voiceName || '';
+          state.modelId = props.modelId || 'eleven_multilingual_v2';
+          state.folderName = props.folderName || '';
+          // Restore voice dropdown option if we have a saved voice
+          if (state.voiceId) ensureVoiceOption(state.voiceId, state.voiceName);
+          updateGenerateBtn();
+        })
+        .withFailureHandler(function () { })
+        .getUserProperties();
     }
 
     function saveState() {
-      sessionStorage.setItem('autoNarrationSettings', JSON.stringify({
-        apiKey:    state.apiKey,
-        voiceId:   state.voiceId,
+      const props = {
+        apiKey: state.apiKey,
+        voiceId: state.voiceId,
         voiceName: state.voiceName,
-        modelId:   state.modelId,
+        modelId: state.modelId,
         folderName: state.folderName,
-      }));
+      };
+      if (typeof google !== 'undefined' && google.script) {
+        google.script.run.setUserProperties(props);
+      } else {
+        // Dev/test mode fallback
+        try { sessionStorage.setItem('autoNarrationSettings', JSON.stringify(props)); } catch (e) { }
+      }
     }
 
     /* ════════════════════════════════════════════
@@ -356,9 +602,14 @@
        FETCH SELECTED TEXT FROM DOC
     ════════════════════════════════════════════ */
     function fetchSelectedText() {
+      // Guard: google.script.run only exists inside a real Google Docs sidebar
+      if (typeof google === 'undefined' || !google.script) {
+        setStatus('Ready (dev mode — no doc connected)', '');
+        return;
+      }
       setStatus('Reading selection…');
       google.script.run
-        .withSuccessHandler(function(res) {
+        .withSuccessHandler(function (res) {
           if (res.success) {
             state.selectedText = res.text;
             updatePreview(res.text);
@@ -369,8 +620,8 @@
             setStatus(res.error, 'error');
           }
         })
-        .withFailureHandler(function(err) {
-          setStatus('Failed to read selection', 'error');
+        .withFailureHandler(function (err) {
+          setStatus('Could not read selection — try refreshing the sidebar.', 'error');
         })
         .getSelectedText();
     }
@@ -606,4 +857,5 @@
     fetchSelectedText();
   </script>
 </body>
+
 </html>
