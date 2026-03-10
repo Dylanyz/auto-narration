@@ -54,9 +54,9 @@ async function fetchSelection() {
     let text = '';
 
     if (isDocs) {
-        // Google Docs workaround: Message the content script which has local DOM access to trigger the copy and read the clipboard
+        // Google Docs: use the multi-strategy extraction cascade in docs_injector.js
         try {
-            const res = await chrome.tabs.sendMessage(tab.id, { action: 'docsCopyText' });
+            const res = await chrome.tabs.sendMessage(tab.id, { action: 'docsGetSelection' });
             if (res && res.text) {
                 text = res.text;
             }
@@ -78,6 +78,10 @@ async function fetchSelection() {
         }
     }
 
+    // Show/hide the clipboard warning for Docs pages
+    const clipWarn = $('#clipboardWarning');
+    if (clipWarn) clipWarn.style.display = isDocs ? '' : 'none';
+
     if (text && text.trim()) {
         state.selectedText = text.trim();
         if (state.apiKey) {
@@ -87,13 +91,12 @@ async function fetchSelection() {
     } else {
         state.selectedText = '';
         if (state.apiKey) {
-            if (isDocs) {
-                $('#textPreview').textContent = 'Google Docs blocks automatic extraction.\nPlease press Cmd+C or Ctrl+C to copy your text, then click here to refresh.';
-                setStatus('Action required: Copy text manually (Cmd/Ctrl + C).', 'warning');
-            } else {
-                $('#textPreview').textContent = 'Highlight text on the page…';
-                setStatus('No text selected. Highlight some text first.', 'idle');
-            }
+            $('#textPreview').textContent = isDocs
+                ? 'Highlight text in your Google Doc, then click Refresh or Generate.'
+                : 'Highlight text on the page…';
+            setStatus(isDocs
+                ? 'No text selected. Highlight text in your doc first.'
+                : 'No text selected. Highlight some text first.', 'idle');
         }
     }
     updateGenerateBtn();

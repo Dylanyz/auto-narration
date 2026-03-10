@@ -15,7 +15,19 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId !== 'generateNarration') return;
 
-    const text = info.selectionText;
+    let text = info.selectionText;
+
+    // On Google Docs, selectionText is empty due to canvas rendering —
+    // ask the content script to extract it via the multi-strategy cascade
+    if ((!text || !text.trim()) && tab.url && tab.url.includes('docs.google.com/document')) {
+        try {
+            const res = await chrome.tabs.sendMessage(tab.id, { action: 'docsGetSelection' });
+            if (res && res.text) text = res.text;
+        } catch (e) {
+            console.warn('Docs context menu text extraction failed:', e);
+        }
+    }
+
     if (!text || !text.trim()) return;
 
     // Get settings from storage

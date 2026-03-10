@@ -53,12 +53,25 @@ var settings = {
     trackIndex: 0,        // 0-based internally, shown as 1-based in UI
     maxFiles: 500,        // 0 = scan all
     refreshBeforeLatest: true,
+    shortcuts: {
+        importLatest: { keyCode: 73, metaKey: true, shiftKey: false, altKey: false, ctrlKey: false },
+        insertLatest: { keyCode: 73, metaKey: true, shiftKey: true, altKey: false, ctrlKey: false }
+    }
 };
 
 function loadSettings() {
     try {
         var raw = localStorage.getItem(SETTINGS_KEY);
-        if (raw) Object.assign(settings, JSON.parse(raw));
+        if (raw) {
+            var saved = JSON.parse(raw);
+            // Merge shortcuts separately to preserve defaults for missing keys
+            var savedShortcuts = saved.shortcuts;
+            delete saved.shortcuts;
+            Object.assign(settings, saved);
+            if (savedShortcuts) {
+                settings.shortcuts = Object.assign({}, settings.shortcuts, savedShortcuts);
+            }
+        }
     } catch (e) { }
 
     // Default to Downloads folder if no folder configured
@@ -89,6 +102,12 @@ function populateSettingsForm() {
     else { select.value = 'custom'; customInput.value = val; }
 
     customInput.style.display = (select.value === 'custom') ? '' : 'none';
+
+    // Shortcut buttons
+    var sc = settings.shortcuts || {};
+    document.getElementById('importShortcutBtn').textContent = shortcutLabel(sc.importLatest);
+    document.getElementById('insertShortcutBtn').textContent = shortcutLabel(sc.insertLatest);
+    updateShortcutHints();
 }
 
 function saveSettings() {
@@ -107,6 +126,7 @@ function saveSettings() {
 
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
 
+    registerShortcuts();
     setStatus('Settings saved.', 'ok');
     switchTab('mainView');
     refreshFileList();
@@ -466,7 +486,165 @@ document.getElementById('fileList').addEventListener('click', function (e) {
    KEYBOARD SHORTCUTS (configurable + global via CEP)
 ════════════════════════════════════════════════ */
 
+var KEY_NAMES = {
+    8: '⌫', 9: 'Tab', 13: '↵', 16: 'Shift', 17: 'Ctrl', 18: 'Alt', 27: 'Esc',
+    32: 'Space', 37: '←', 38: '↑', 39: '→', 40: '↓', 46: 'Del',
+    48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6', 55: '7', 56: '8', 57: '9',
+    65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I',
+    74: 'J', 75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R',
+    83: 'S', 84: 'T', 85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z',
+    112: 'F1', 113: 'F2', 114: 'F3', 115: 'F4', 116: 'F5', 117: 'F6',
+    118: 'F7', 119: 'F8', 120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12',
+    186: ';', 187: '=', 188: ',', 189: '-', 190: '.', 191: '/', 192: '`',
+    219: '[', 220: '\\', 221: ']', 222: "'"
+};
 
+function shortcutLabel(sc) {
+    if (!sc || !sc.keyCode) return 'None';
+    var parts = [];
+    if (sc.ctrlKey) parts.push('Ctrl');
+    if (sc.altKey) parts.push('Alt');
+    if (sc.shiftKey) parts.push('⇧');
+    if (sc.metaKey) parts.push('⌘');
+    parts.push(KEY_NAMES[sc.keyCode] || ('Key' + sc.keyCode));
+    return parts.join('+');
+}
+
+function registerShortcuts() {
+    if (!_cep) return;
+
+    var keysToRegister = [];
+    var sc = settings.shortcuts || {};
+
+    if (sc.importLatest && sc.importLatest.keyCode) keysToRegister.push(sc.importLatest);
+    if (sc.insertLatest && sc.insertLatest.keyCode) keysToRegister.push(sc.insertLatest);
+
+    if (keysToRegister.length > 0) {
+        try {
+            _cep.registerKeyEventsInterest(JSON.stringify(keysToRegister));
+        } catch (e) {
+            console.warn('registerKeyEventsInterest failed:', e);
+        }
+    }
+}
+
+function shortcutMatches(event, sc) {
+    if (!sc || !sc.keyCode) return false;
+    return event.keyCode === sc.keyCode &&
+           event.metaKey === (sc.metaKey || false) &&
+           event.shiftKey === (sc.shiftKey || false) &&
+           event.altKey === (sc.altKey || false) &&
+           event.ctrlKey === (sc.ctrlKey || false);
+}
+
+document.addEventListener('keydown', function (e) {
+    var sc = settings.shortcuts || {};
+    if (shortcutMatches(e, sc.importLatest)) {
+        e.preventDefault();
+        importLatest();
+    } else if (shortcutMatches(e, sc.insertLatest)) {
+        e.preventDefault();
+        insertLatest();
+    }
+});
+
+// ── Shortcut Recording ──
+
+var activeRecordingBtn = null;
+
+function startRecording(btn) {
+    if (activeRecordingBtn) stopRecording(activeRecordingBtn);
+    activeRecordingBtn = btn;
+    btn.classList.add('recording');
+    btn.textContent = 'Press keys…';
+}
+
+function stopRecording(btn) {
+    btn.classList.remove('recording');
+    activeRecordingBtn = null;
+}
+
+function handleShortcutRecord(e) {
+    if (!activeRecordingBtn) return;
+    // Ignore lone modifier presses
+    if ([16, 17, 18, 91, 93, 224].indexOf(e.keyCode) !== -1) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    var sc = {
+        keyCode: e.keyCode,
+        metaKey: e.metaKey,
+        shiftKey: e.shiftKey,
+        altKey: e.altKey,
+        ctrlKey: e.ctrlKey
+    };
+
+    var actionName = activeRecordingBtn.getAttribute('data-action');
+    settings.shortcuts[actionName] = sc;
+
+    activeRecordingBtn.textContent = shortcutLabel(sc);
+    stopRecording(activeRecordingBtn);
+    updateShortcutHints();
+}
+
+document.addEventListener('keydown', handleShortcutRecord, true);
+
+function updateShortcutHints() {
+    var sc = settings.shortcuts || {};
+    var importHint = document.getElementById('importShortcutHint');
+    var insertHint = document.getElementById('insertShortcutHint');
+    if (importHint) importHint.textContent = shortcutLabel(sc.importLatest);
+    if (insertHint) insertHint.textContent = shortcutLabel(sc.insertLatest);
+}
+
+// ── Shortcut Button Event Listeners ──
+
+document.getElementById('importShortcutBtn').addEventListener('click', function () {
+    startRecording(this);
+});
+document.getElementById('insertShortcutBtn').addEventListener('click', function () {
+    startRecording(this);
+});
+
+document.getElementById('clearImportShortcut').addEventListener('click', function () {
+    var btn = document.getElementById('importShortcutBtn');
+    if (activeRecordingBtn === btn) stopRecording(btn);
+    settings.shortcuts.importLatest = { keyCode: 0 };
+    btn.textContent = 'None';
+    updateShortcutHints();
+});
+document.getElementById('clearInsertShortcut').addEventListener('click', function () {
+    var btn = document.getElementById('insertShortcutBtn');
+    if (activeRecordingBtn === btn) stopRecording(btn);
+    settings.shortcuts.insertLatest = { keyCode: 0 };
+    btn.textContent = 'None';
+    updateShortcutHints();
+});
+
+// ── Copy Menu Title Buttons ──
+
+function copyToClipboard(text) {
+    var el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}
+
+document.getElementById('copyImportTitle').addEventListener('click', function () {
+    copyToClipboard('AN: Import Latest');
+    this.textContent = 'Copied!';
+    var btn = this;
+    setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+});
+document.getElementById('copyInsertTitle').addEventListener('click', function () {
+    copyToClipboard('AN: Insert Latest');
+    this.textContent = 'Copied!';
+    var btn = this;
+    setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+});
 
 // ── Headless Extension Listener ──
 // Headless extensions don't have direct access to the Node.js context variables, so they 
@@ -489,9 +667,14 @@ function resetSettings() {
             binPath: 'Audio/VO',
             trackIndex: 0,
             maxFiles: 500,
-            refreshBeforeLatest: true
+            refreshBeforeLatest: true,
+            shortcuts: {
+                importLatest: { keyCode: 73, metaKey: true, shiftKey: false, altKey: false, ctrlKey: false },
+                insertLatest: { keyCode: 73, metaKey: true, shiftKey: true, altKey: false, ctrlKey: false }
+            }
         };
         loadSettings();
+        registerShortcuts();
         setStatus('Settings reset to defaults.', 'ok');
     }
 }
@@ -501,6 +684,7 @@ function resetSettings() {
 ════════════════════════════════════════════════ */
 try {
     loadSettings();
+    registerShortcuts();
 
     // Defer the first scan so the UI renders first
     setTimeout(function () {

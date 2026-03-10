@@ -646,25 +646,48 @@
                     <hr class="divider">
 
                     <div class="field">
-                        <label>Global Keyboard Shortcuts</label>
+                        <label>Panel Keyboard Shortcuts</label>
+                        <span class="field-hint">These work when the Auto Narration panel is focused. Click a button and press your desired key combo to record it.</span>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                            <span style="flex: 1; font-size: 12px; color: var(--text);">Import Latest</span>
+                            <button class="shortcut-btn" id="importShortcutBtn" data-action="importLatest" type="button">⌘I</button>
+                            <button class="btn btn-secondary" id="clearImportShortcut" type="button" style="padding: 5px 8px; font-size: 10px;">Clear</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                            <span style="flex: 1; font-size: 12px; color: var(--text);">Insert Latest</span>
+                            <button class="shortcut-btn" id="insertShortcutBtn" data-action="insertLatest" type="button">⌘⇧I</button>
+                            <button class="btn btn-secondary" id="clearInsertShortcut" type="button" style="padding: 5px 8px; font-size: 10px;">Clear</button>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="field">
+                        <label>Global Shortcuts (Timeline Editing)</label>
                         <div style="margin-top: 4px; color: var(--text-2); line-height: 1.4;">
-                            Because Adobe blocks extensions from capturing global shortcuts while Editing, you must use
-                            <b>macOS Native App Shortcuts</b> for them to work while editing.<br><br>
-                            1. Open your Mac's <b>System Settings > Keyboard > Keyboard Shortcuts > App
+                            Panel shortcuts only work when the panel is focused. For shortcuts that work <b>while
+                            editing your timeline</b>, use macOS App Shortcuts:<br><br>
+                            1. Open <b>System Settings &gt; Keyboard &gt; Keyboard Shortcuts &gt; App
                                 Shortcuts</b><br>
-                            2. Add a new shortcut, and choose <b>Adobe Premiere Pro 2025</b> as the app.<br>
-                            3. Set the Menu Title perfectly to one of the following:<br>
-                            &nbsp;&nbsp;• `AN: Insert Latest`<br>
-                            &nbsp;&nbsp;• `AN: Import Latest`<br>
-                            4. Click the "Keyboard Shortcut" field and assign your shortcut (e.g. <i>Shift+N</i>).<br>
-                            <br>
-                            <i>This tricks macOS into invisibly clicking the command, bypassing Premiere entirely!</i>
+                            2. Click <b>+</b>, choose <b>Adobe Premiere Pro</b> as the app.<br>
+                            3. Paste one of the menu titles below and assign your shortcut.<br>
                         </div>
-                        <div style="margin-top: 14px;">
-                            <button class="btn btn-secondary" id="resetSettingsBtn"
-                                style="color: var(--error); border-color: rgba(255,107,107,0.3); width: 100%;"
-                                type="button">Reset All Settings</button>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+                            <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Import Latest</code>
+                            <button class="btn btn-secondary" id="copyImportTitle" type="button" style="padding: 5px 10px; font-size: 10px;">Copy</button>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                            <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Insert Latest</code>
+                            <button class="btn btn-secondary" id="copyInsertTitle" type="button" style="padding: 5px 10px; font-size: 10px;">Copy</button>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div style="margin-top: 4px;">
+                        <button class="btn btn-secondary" id="resetSettingsBtn"
+                            style="color: var(--error); border-color: rgba(255,107,107,0.3); width: 100%;"
+                            type="button">Reset All Settings</button>
                     </div>
 
 

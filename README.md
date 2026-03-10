@@ -8,12 +8,11 @@ Welcome! This tool makes adding AI voiceovers to your videos **super fast** and 
 
 It bridges the gap between your script and your video editor in two simple steps:
 
-**1. The Google Docs Add-on (Primary Text to Speech)**
-- 📝 Perfect for scriptwriting. Lives directly inside a handy sidebar right next to your Google Doc.
+**1. The Chrome Extension (Primary Text to Speech)**
+- 🌐 Works everywhere — Google Docs, webpages, PDFs, you name it.
+- 📝 On Google Docs it auto-opens a sidebar right next to your document, just like a native add-on.
 - 🪄 Highlight your script, smash "Generate Audio", and it instantly creates a high-quality AI voiceover using ElevenLabs that saves directly to your computer.
-
-**1.5. The Chrome Extension (Optional Backup)**
-- 🌐 Want to narrate a random webpage or PDF? Use the companion Chrome Extension to highlight text *anywhere* on the web and generate audio from the right-click menu.
+- 🖱️ Or just right-click any selected text and choose "Generate Narration" from the context menu.
 
 **2. The Premiere Pro Extension (Auto Import/Insert)**
 - 🎬 Open Premiere Pro
@@ -27,31 +26,9 @@ It bridges the gap between your script and your video editor in two simple steps
 
 Don't worry if you've never used code or the terminal before. Just follow these steps one by one. We will hold your hand!
 
-### Part 1: Install the Google Docs Add-on
+### Part 1: Install the Chrome Extension
 
-Since you write scripts in Google Docs, we built a custom native sidebar just for you! It's super fast to hook up:
-
-1. 🔗 **Open this link:** [Auto Narration Docs Add-on](https://script.google.com/d/1mOMwLVAiIJYbG8XJv05JvePI5FMxP18GSjRonltXRmh48RLvrvtQXUqV/edit?usp=sharing)
-2. 🚀 Click the blue **Deploy** button (top right) ➡️ **Test deployments**.
-3. 🔄 Set **Version** to `Latest Code`.
-4. ✅ Set **Config** to `Installed and enabled`.
-5. 📄 Set **Test document** to whichever document you want it to be active on!
-6. 💾 Click **Install**, then click **Done**.
-
-*(Note: Google will ask you to authorize it since it's a custom app. Just click your account ➡️ Advanced ➡️ Go to Auto Narration ➡️ Allow!)*
-
-### Part 1.5: Get Your Free AI Voice (API Key)
-
-To make the voices talk, we use ElevenLabs. You just need to paste in a secret key to link your account!
-1. Go to [ElevenLabs.io](https://elevenlabs.io/) and create a free account.
-2. Click your profile icon in the bottom left corner and select **Profile + API key**.
-3. Click the eye icon to reveal your **API Key**, and copy it.
-4. Open the **Auto Narration** sidebar inside your Google Doc (Extensions ➡️ Auto Narration).
-5. Paste your API Key into the Settings box and generate!
-
-### Part 1.7: Install the Chrome Extension (Optional)
-
-If you ever need to generate audio from a random webpage and not just Google Docs, install this backup tool:
+This is the only extension you need — it works on Google Docs, regular webpages, and anything else in Chrome!
 
 1. Open **Google Chrome**.
 2. Type `chrome://extensions/` into your address bar and press Enter.
@@ -59,6 +36,17 @@ If you ever need to generate audio from a random webpage and not just Google Doc
 4. Click **Load unpacked** (top left).
 5. Select the `auto-narration` ➡️ `chrome-extension` folder.
 6. 🧩 **Pro Tip:** Pin it to your browser bar for easy access!
+
+When you open a Google Doc, a sidebar will automatically slide in from the right — just like a native add-on, but without any per-document setup.
+
+### Part 1.5: Get Your Free AI Voice (API Key)
+
+To make the voices talk, we use ElevenLabs. You just need to paste in a secret key to link your account!
+1. Go to [ElevenLabs.io](https://elevenlabs.io/) and create a free account.
+2. Click your profile icon in the bottom left corner and select **Profile + API key**.
+3. Click the eye icon to reveal your **API Key**, and copy it.
+4. Open the **Auto Narration** sidebar (it auto-opens on Google Docs, or click the extension icon on any page).
+5. Paste your API Key into the Settings box and generate!
 
 ### Part 2: Install the Premiere Pro Extension
 
@@ -79,14 +67,13 @@ You only have to do this once! (Mac only, Premiere Pro 2021 or newer).
 
 Here is exactly how to use every setting in the tool!
 
-### 📄 The Google Docs Add-on
-*   **The Sidebar:** Open it inside any Google Doc via `Extensions ➡️ Auto Narration`.
-*   **Generate Audio:** Highlight your script text in the document and click the big blue Generate button.
-*   **Auto-Save:** Audio files will automatically be downloaded and saved directly to your browser's default Downloads folder.
-
-### 🌐 The Chrome Extension (Optional)
+### 🌐 The Chrome Extension
+*   **Google Docs Sidebar:** Opens automatically when you visit a Google Doc. Highlight text and click Generate.
 *   **Webpage Extraction:** Highlight text on any public webpage or PDF, right-click, and select "Generate Narration".
-*   **Pop-up Text Pad:** Click the extension icon in your Chrome bar to paste custom text and generate it on the fly.
+*   **Pop-up:** Click the extension icon in your Chrome bar to generate audio from any page.
+*   **Auto-Save:** Audio files are automatically downloaded to your browser's default Downloads folder.
+
+> **Note:** The legacy `google-docs-addon/` folder contains a deprecated Apps Script add-on. It is no longer needed — the Chrome extension now handles Google Docs natively.
 
 ### 🎬 The Premiere Pro Extension
 *   **Import Latest:** Grabs your newest audio file and adds it to your project bin, *without* putting it on the timeline so you can place it manually.
@@ -98,7 +85,8 @@ Here is exactly how to use every setting in the tool!
     *   **Audio Track:** Choose which audio track (A1, A2, A3, etc.) the voiceover should be placed on in your sequence.
     *   **Max Files to Scan:** How many recent files to show in your list. Lower equals faster loading!
     *   **Refresh before Latest:** Checks for new files automatically before importing/inserting.
-*   **Global Keyboard Shortcuts:** You can set native Premiere shortcuts! In Premiere, go to **Edit ➡️ Keyboard Shortcuts** (or Premiere Pro ➡️ Keyboard Shortcuts on Mac), search for `"AN: Insert Latest"` or `"AN: Import Latest"`, and add your favorite key combo.
+*   **Panel Keyboard Shortcuts:** In Settings, click the record button next to Import Latest or Insert Latest and press your desired key combo. These work whenever the Auto Narration panel is focused.
+*   **Global Keyboard Shortcuts (Timeline Editing):** For shortcuts that work while you're editing the timeline, use macOS App Shortcuts. In Settings, copy the exact menu title (`AN: Import Latest` or `AN: Insert Latest`), then go to **System Settings ➡️ Keyboard ➡️ Keyboard Shortcuts ➡️ App Shortcuts**, add a shortcut for Adobe Premiere Pro, paste the menu title, and assign your key combo.
 
 ---
 
