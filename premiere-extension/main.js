@@ -549,24 +549,47 @@ document.addEventListener('keydown', function (e) {
 });
 
 // ── Shortcut Recording ──
+// Use a hidden input to capture keys; CEP panels often don't receive keydown for letter keys
+// when focus is on a button or the host app captures keys. Focusing an input makes key events
+// reliably delivered to the panel.
 
 var activeRecordingBtn = null;
+var shortcutRecordInput = null;
+
+function ensureShortcutRecordInput() {
+    if (shortcutRecordInput) return shortcutRecordInput;
+    shortcutRecordInput = document.createElement('input');
+    shortcutRecordInput.type = 'text';
+    shortcutRecordInput.setAttribute('aria-hidden', 'true');
+    shortcutRecordInput.tabIndex = -1;
+    shortcutRecordInput.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+    document.body.appendChild(shortcutRecordInput);
+    shortcutRecordInput.addEventListener('keydown', function (e) {
+        if (!activeRecordingBtn) return;
+        handleShortcutRecord(e);
+    }, true);
+    return shortcutRecordInput;
+}
 
 function startRecording(btn) {
     if (activeRecordingBtn) stopRecording(activeRecordingBtn);
     activeRecordingBtn = btn;
     btn.classList.add('recording');
     btn.textContent = 'Press keys…';
+    var input = ensureShortcutRecordInput();
+    input.value = '';
+    input.focus();
 }
 
 function stopRecording(btn) {
-    btn.classList.remove('recording');
+    if (btn) btn.classList.remove('recording');
     activeRecordingBtn = null;
+    if (shortcutRecordInput) shortcutRecordInput.blur();
 }
 
 function handleShortcutRecord(e) {
     if (!activeRecordingBtn) return;
-    // Ignore lone modifier presses
+    // Ignore lone modifier presses (Shift, Ctrl, Alt, Meta left/right, Cmd on Mac)
     if ([16, 17, 18, 91, 93, 224].indexOf(e.keyCode) !== -1) return;
 
     e.preventDefault();
