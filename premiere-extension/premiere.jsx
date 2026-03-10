@@ -187,3 +187,30 @@ function browseForFolder() {
 function ping() {
   return 'pong';
 }
+
+// ─────────────────────────────────────────────────────────────
+//  Dispatch CSXS events to the CEP panel (for menu/shortcut triggers)
+//  Used when the user invokes "AN: Import Latest" or "AN: Insert Latest"
+//  from the menu or via a keyboard shortcut assigned in Premiere/macOS.
+// ─────────────────────────────────────────────────────────────
+function dispatchANImport() {
+  try {
+    var xLib = new ExternalObject('lib:\\PlugPlugExternalObject');
+    if (xLib) {
+      var evt = new CSXSEvent();
+      evt.type = 'AN_CMD_IMPORT';
+      evt.dispatch();
+    }
+  } catch (e) { }
+}
+
+function dispatchANInsert() {
+  try {
+    var xLib = new ExternalObject('lib:\\PlugPlugExternalObject');
+    if (xLib) {
+      var evt = new CSXSEvent();
+      evt.type = 'AN_CMD_INSERT';
+      evt.dispatch();
+    }
+  } catch (e) { }
+}

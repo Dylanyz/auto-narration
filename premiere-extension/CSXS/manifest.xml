@@ -65,6 +65,7 @@
       <DispatchInfo>
         <Resources>
           <MainPath>./import_headless.html</MainPath>
+          <ScriptPath>./premiere.jsx</ScriptPath>
           <CEFCommandLine>
             <Parameter>--enable-nodejs</Parameter>
             <Parameter>--mixed-context</Parameter>
@@ -91,6 +92,7 @@
       <DispatchInfo>
         <Resources>
           <MainPath>./insert_headless.html</MainPath>
+          <ScriptPath>./premiere.jsx</ScriptPath>
           <CEFCommandLine>
             <Parameter>--enable-nodejs</Parameter>
             <Parameter>--mixed-context</Parameter>

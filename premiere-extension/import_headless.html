@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html>
 <script>
-    localStorage.setItem('AN_CMD_IMPORT', Date.now().toString());
-    if (window.__adobe_cep__) window.__adobe_cep__.closeExtension();
+    (function () {
+        var cep = (typeof __adobe_cep__ !== 'undefined') ? __adobe_cep__ : null;
+        if (cep && cep.evalScript) {
+            cep.evalScript('dispatchANImport()', function () {
+                try { cep.closeExtension(); } catch (e) { }
+            });
+        } else {
+            try { cep.closeExtension(); } catch (e) { }
+        }
+    })();
 </script>
-
 </html>
