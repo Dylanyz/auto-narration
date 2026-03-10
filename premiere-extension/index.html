@@ -516,6 +516,47 @@
         .settings-footer .btn {
             width: 100%;
         }
+
+        /* ── Global shortcut activation bar ──── */
+        .global-shortcut-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+            flex-shrink: 0;
+            font-size: 11px;
+            color: var(--text-2);
+            transition: all .3s;
+        }
+
+        .global-shortcut-bar .gs-label {
+            flex: 1;
+        }
+
+        .global-shortcut-bar .gs-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-3);
+            flex-shrink: 0;
+            transition: background .2s;
+        }
+
+        .global-shortcut-bar.active {
+            border-left-color: var(--success);
+            background: color-mix(in srgb, var(--success) 6%, var(--surface));
+        }
+
+        .global-shortcut-bar.active .gs-dot {
+            background: var(--success);
+        }
+
+        .global-shortcut-bar.hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -561,6 +602,14 @@
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                     </svg>
                 </button>
+            </div>
+
+            <!-- Global shortcut activation -->
+            <div class="global-shortcut-bar" id="globalShortcutBar">
+                <div class="gs-dot"></div>
+                <span class="gs-label" id="gsLabel">Global shortcuts need activation</span>
+                <button class="btn btn-secondary" id="activateGlobalBtn" type="button"
+                    style="padding: 4px 10px; font-size: 10px;">Activate</button>
             </div>
 
             <!-- File list -->
@@ -646,9 +695,9 @@
                     <hr class="divider">
 
                     <div class="field">
-                        <label>Panel Shortcuts (when panel is focused)</label>
-                        <span class="field-hint">Work when this panel is focused. Only single keys work
-                            (no Cmd/Ctrl/Shift combos). Recommended: <b>F2</b> = Import, <b>F3</b> = Insert.</span>
+                        <label>Panel Shortcuts</label>
+                        <span class="field-hint">Only work when <b>this panel is clicked/focused</b>.
+                            Won't work from the timeline. Single keys only (no Cmd/Ctrl combos).</span>
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
                             <span style="flex: 1; font-size: 12px; color: var(--text);">Import Latest</span>
                             <button class="shortcut-btn" id="importShortcutBtn" data-action="importLatest" type="button">None</button>
@@ -664,15 +713,15 @@
                     <hr class="divider">
 
                     <div class="field">
-                        <label>Global Shortcuts (work from timeline)</label>
-                        <div style="margin-top: 4px; color: var(--text-2); line-height: 1.5;">
-                            For shortcuts that work <b>while editing the timeline</b> (panel doesn't need focus),
-                            use macOS App Shortcuts. The Auto Narration panel must be open (can be in background).
-                        </div>
-                        <div style="margin-top: 8px; color: var(--text-2); line-height: 1.5;">
-                            1. <b>System Settings</b> → Keyboard → Keyboard Shortcuts → App Shortcuts<br>
-                            2. Click <b>+</b>, Application: <b>Adobe Premiere Pro</b><br>
-                            3. Menu Title: paste <b>exactly</b> one of the titles below. Assign your key.
+                        <label>Global Shortcuts (recommended)</label>
+                        <span class="field-hint">Work from <b>anywhere</b> — timeline, bin, wherever.
+                            Place your playhead and press the shortcut to insert instantly.</span>
+
+                        <div style="margin-top: 10px; color: var(--text-2); line-height: 1.6;">
+                            <b>One-time setup (macOS):</b><br>
+                            1. Open <b>System Settings → Keyboard → Keyboard Shortcuts → App Shortcuts</b><br>
+                            2. Click <b>+</b>, select <b>Adobe Premiere Pro</b><br>
+                            3. Paste a menu title below, assign your key combo, click Done
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
                             <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Import Latest</code>
@@ -682,9 +731,10 @@
                             <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Insert Latest</code>
                             <button class="btn btn-secondary" id="copyInsertTitle" type="button" style="padding: 5px 10px; font-size: 10px;">Copy</button>
                         </div>
-                        <div style="margin-top: 8px; color: var(--text-3); font-size: 10px; line-height: 1.4;">
-                            The shortcut panels auto-start with Premiere — no need to open them manually.
-                            You can verify they exist under <b>Window → Extensions</b>.
+                        <div style="margin-top: 10px; color: var(--text-3); font-size: 10px; line-height: 1.5;">
+                            On each Premiere launch, click <b>Activate</b> in the toolbar above
+                            (or open any helper panel once from Window → Extensions).
+                            Helper panels open briefly when triggered, then close automatically.
                         </div>
                     </div>
 

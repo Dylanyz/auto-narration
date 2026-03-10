@@ -1,20 +1,43 @@
 <!DOCTYPE html>
 <html>
+<body style="margin:0;padding:8px;font:11px/1.4 -apple-system,sans-serif;background:#1a1a1a;color:#888;">
+<div style="color:#4d9cf8;font-weight:600;margin-bottom:4px;">AN: Import Latest</div>
+<div id="log"></div>
 <script>
     (function () {
+        var logEl = document.getElementById('log');
+        function log(msg) {
+            var d = new Date();
+            var ts = d.toLocaleTimeString() + '.' + String(d.getMilliseconds()).padStart(3, '0');
+            var line = document.createElement('div');
+            line.textContent = ts + '  ' + msg;
+            logEl.insertBefore(line, logEl.firstChild);
+            while (logEl.children.length > 30) logEl.removeChild(logEl.lastChild);
+        }
+
         var cep = (typeof __adobe_cep__ !== 'undefined') ? __adobe_cep__ : null;
-        if (!cep || !cep.evalScript) return;
+        if (!cep || !cep.evalScript) { log('ERROR: __adobe_cep__ not available'); return; }
 
         var _require = (typeof require === 'function') ? require
             : (typeof cep_node !== 'undefined' && cep_node.require) ? cep_node.require : null;
         var fs, nodePath;
         try { fs = _require('fs'); nodePath = _require('path'); } catch (e) { }
 
-        var SETTINGS_KEY = 'autoNarrationPremiereSettings';
+        var SETTINGS_FILE = '';
+        try {
+            var home = (typeof process !== 'undefined' && process.env.HOME) || '';
+            SETTINGS_FILE = home + '/.autonarration-premiere-settings.json';
+        } catch (e) { }
 
         function getSettings() {
+            if (fs && SETTINGS_FILE) {
+                try {
+                    var data = fs.readFileSync(SETTINGS_FILE, 'utf8');
+                    if (data) return JSON.parse(data);
+                } catch (e) { }
+            }
             try {
-                var raw = localStorage.getItem(SETTINGS_KEY);
+                var raw = localStorage.getItem('autoNarrationPremiereSettings');
                 if (raw) return JSON.parse(raw);
             } catch (e) { }
             return {};
@@ -40,32 +63,74 @@
         }
 
         var lastRun = 0;
-        function doAction() {
+        function doAction(source) {
             var now = Date.now();
-            if (now - lastRun < 500) return;
+            if (now - lastRun < 2000) { log('(cooldown, source: ' + source + ')'); return; }
             lastRun = now;
 
             var s = getSettings();
+            if (!s.folderPath) { log('No folderPath — save settings in main panel first'); return; }
+
             var filePath = findLatestAudio(s.folderPath);
-            if (!filePath) return;
+            if (!filePath) { log('No audio files in: ' + s.folderPath); return; }
 
             var jsxPath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             var jsxBin = (s.binPath || '').replace(/'/g, "\\'");
 
-            cep.evalScript("importOnly('" + jsxPath + "', '" + jsxBin + "')");
+            var script = "importOnly('" + jsxPath + "', '" + jsxBin + "')";
+            log('IMPORT via ' + source + ': ' + filePath.replace(/.*[\/\\]/, ''));
+            cep.evalScript(script, function (result) {
+                log('JSX result: ' + String(result));
+                setTimeout(function () {
+                    log('Closing panel...');
+                    try { cep.closeExtension(); } catch (e) { log('close failed: ' + e); }
+                }, 400);
+            });
         }
 
-        // Skip the initial load (panel auto-starts with Premiere).
-        // Only act on subsequent focus/visibility triggers from menu or shortcut.
-        var ready = false;
-        setTimeout(function () { ready = true; }, 1500);
-
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden && ready) doAction();
-        });
+        // Focus listener — catches shortcut activation when panel was auto-started hidden
         window.addEventListener('focus', function () {
-            if (ready) doAction();
+            log('EVENT focus');
+            doAction('focus');
         });
+
+        // Polling backup for focus transitions
+        var wasFocused = document.hasFocus();
+        setInterval(function () {
+            var focused = document.hasFocus();
+            if (focused && !wasFocused) {
+                log('POLL focus transition');
+                doAction('poll-focus');
+            }
+            wasFocused = focused;
+        }, 200);
+
+        // Check how we were opened
+        var hadFocusOnLoad = document.hasFocus();
+        log('Loaded. hasFocus=' + hadFocusOnLoad + ' hidden=' + document.hidden);
+        log('folderPath: ' + (getSettings().folderPath || '(empty)'));
+
+        var activationFlag = '';
+        try { activationFlag = (typeof process !== 'undefined' ? process.env.HOME : '') + '/.autonarration-activating'; } catch (e) { }
+        var isActivationOpen = false;
+        if (fs && activationFlag) {
+            try {
+                if (fs.existsSync(activationFlag)) {
+                    fs.unlinkSync(activationFlag);
+                    isActivationOpen = true;
+                }
+            } catch (e) { }
+        }
+
+        if (isActivationOpen) {
+            log('Activation-only open — shortcuts are now registered');
+        } else if (hadFocusOnLoad) {
+            log('Opened with focus — firing action in 150ms');
+            setTimeout(function () { doAction('load'); }, 150);
+        } else {
+            log('Auto-started hidden — waiting for activation...');
+        }
     })();
 </script>
+</body>
 </html>

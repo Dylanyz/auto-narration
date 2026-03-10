@@ -1,0 +1,36 @@
+---
+description: Premiere Pro CEP extension keyboard shortcut knowledge and architecture
+globs: premiere-extension/**
+alwaysApply: false
+---
+
+# Premiere CEP Extension Context
+
+Read `premiere-extension/KEYBOARD_SHORTCUTS.md` for detailed research on how
+keyboard shortcuts work (and don't work) in Premiere Pro CEP extensions.
+
+## Key facts
+
+- `registerKeyEventsInterest` uses **macOS native keyCodes (0–127)**, not DOM keyCodes
+- Register ALL keyCodes 0–127 on panel load so the panel receives key events
+- Only single keys work (no Cmd/Ctrl/Shift combos on macOS)
+- Raw `__adobe_cep__.addEventListener` expects a **string** callback, not a function ref
+- `closeExtension()` has known bugs — avoid it; keep panels alive
+- Cross-panel communication (CSXS events, localStorage) is unreliable in Premiere
+- Headless trigger panels should be self-contained (read settings, find file, call JSX directly)
+- Global shortcuts use macOS App Shortcuts mapped to menu items from headless Panel-type extensions
+- Headless panels auto-start via `<StartOn><Event>applicationActivate</Event></StartOn>`
+
+## Architecture
+
+- `main.js` — main panel: file list, settings, panel shortcuts via registerAllKeys()
+- `import_headless.html` / `insert_headless.html` — self-contained trigger panels
+- `premiere.jsx` — ExtendScript (importAndPlace, importOnly, browseForFolder, etc.)
+- `CSXS/manifest.xml` — 3 extensions: main panel + 2 headless triggers
+- `install.sh` — deploys to `~/Library/Application Support/Adobe/CEP/extensions/`
+
+## Current status
+
+- Panel shortcuts (focused): WORKING — single keys and F-keys
+- Global shortcuts: headless panel opens on macOS App Shortcut trigger, but the
+  action may not execute — focus/visibilitychange events need investigation

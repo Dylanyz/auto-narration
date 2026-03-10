@@ -46,6 +46,12 @@ function evalScript(script) {
    SETTINGS
 ════════════════════════════════════════════════ */
 var SETTINGS_KEY = 'autoNarrationPremiereSettings';
+var SETTINGS_FILE = (function () {
+    try {
+        var home = (typeof process !== 'undefined' && process.env.HOME) || '';
+        return home + '/.autonarration-premiere-settings.json';
+    } catch (e) { return ''; }
+})();
 
 var settings = {
     folderPath: '',
@@ -228,10 +234,18 @@ function saveSettings() {
     }
 
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
+    writeSettingsFile();
 
     setStatus('Settings saved.', 'ok');
     switchTab('mainView');
     refreshFileList();
+}
+
+function writeSettingsFile() {
+    if (!fs || !SETTINGS_FILE) return;
+    try {
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings), 'utf8');
+    } catch (e) { console.warn('Failed to write settings file:', e); }
 }
 
 /* ════════════════════════════════════════════════
@@ -547,8 +561,58 @@ function switchTab(viewId) {
 }
 
 /* ════════════════════════════════════════════════
+   GLOBAL SHORTCUT ACTIVATION
+════════════════════════════════════════════════ */
+var ACTIVATION_FLAG = (function () {
+    try { return (process.env.HOME || '') + '/.autonarration-activating'; } catch (e) { return ''; }
+})();
+
+function activateGlobalShortcuts() {
+    var bar = document.getElementById('globalShortcutBar');
+    var label = document.getElementById('gsLabel');
+    var btn = document.getElementById('activateGlobalBtn');
+
+    label.textContent = 'Activating…';
+    btn.disabled = true;
+
+    // Write flag so the helper panel skips its action on this open
+    if (fs && ACTIVATION_FLAG) {
+        try { fs.writeFileSync(ACTIVATION_FLAG, '1', 'utf8'); } catch (e) { }
+    }
+
+    // Use AppleScript to click the menu item — this is the only way to
+    // properly register the helper panel with Premiere's menu system.
+    var exec = _require('child_process').exec;
+    var script = 'tell application "System Events"\n'
+        + '  set ppro to first process whose name contains "Premiere Pro"\n'
+        + '  tell ppro\n'
+        + '    click menu item "AN: Insert Latest" of menu 1 of menu item "Extensions" of menu 1 of menu bar item "Window" of menu bar 1\n'
+        + '  end tell\n'
+        + 'end tell';
+
+    exec("osascript -e '" + script.replace(/'/g, "'\\''") + "'", function (err) {
+        if (err) {
+            label.innerHTML = 'Failed — open <b>Window → Extensions → AN: Insert Latest</b> manually';
+            btn.textContent = 'Dismiss';
+            btn.disabled = false;
+            btn.onclick = function () { bar.classList.add('hidden'); };
+            console.warn('osascript error:', err);
+            return;
+        }
+
+        bar.classList.add('active');
+        label.textContent = 'Global shortcuts active';
+        btn.style.display = 'none';
+        setTimeout(function () { bar.classList.add('hidden'); }, 4000);
+    });
+}
+
+/* ════════════════════════════════════════════════
    EVENT LISTENERS
 ════════════════════════════════════════════════ */
+
+// Global shortcut activation
+document.getElementById('activateGlobalBtn').addEventListener('click', activateGlobalShortcuts);
 
 // Import Latest / Insert Latest
 document.getElementById('importLatestBtn').addEventListener('click', importLatest);
@@ -678,6 +742,7 @@ function resetSettings() {
 try {
     registerAllKeys();
     loadSettings();
+    writeSettingsFile();
 
     // Defer the first scan so the UI renders first
     setTimeout(function () {

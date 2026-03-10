@@ -60,7 +60,7 @@
       </DispatchInfo>
     </Extension>
 
-    <!-- Headless Extension: Import Latest -->
+    <!-- Trigger Extension: Import Latest -->
     <Extension Id="com.autonarration.import">
       <DispatchInfo>
         <Resources>
@@ -82,15 +82,15 @@
           <Menu>AN: Import Latest</Menu>
           <Geometry>
             <Size>
-              <Height>0</Height>
-              <Width>0</Width>
+              <Height>1</Height>
+              <Width>1</Width>
             </Size>
           </Geometry>
         </UI>
       </DispatchInfo>
     </Extension>
 
-    <!-- Headless Extension: Insert Latest -->
+    <!-- Trigger Extension: Insert Latest -->
     <Extension Id="com.autonarration.insert">
       <DispatchInfo>
         <Resources>
@@ -112,8 +112,8 @@
           <Menu>AN: Insert Latest</Menu>
           <Geometry>
             <Size>
-              <Height>0</Height>
-              <Width>0</Width>
+              <Height>1</Height>
+              <Width>1</Width>
             </Size>
           </Geometry>
         </UI>
