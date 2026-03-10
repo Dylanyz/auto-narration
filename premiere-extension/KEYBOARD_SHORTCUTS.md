@@ -122,9 +122,13 @@ Key methods:
     `document.hasFocus()` and `!document.hidden` transitions
   - The 500ms debounce in `doAction()` prevents double-fires from multiple paths
 
+### Startup / first paint:
+- Main panel defers loading `main.js` by one frame (requestAnimationFrame/setTimeout) and runs init (registerAllKeys, loadSettings, etc.) in a deferred tick so the panel paints before heavy work — avoids grey window on first launch.
+- Headless panels defer the 200ms focus-polling `setInterval` by 1.5s so they don’t add timers at launch; focus/resize event handlers stay active so global shortcuts still work immediately.
+
 ### Files involved:
-- `main.js` — main panel logic, panel shortcuts, registerAllKeys()
-- `index.html` — UI with settings, shortcut recording buttons
+- `main.js` — main panel logic, panel shortcuts, registerAllKeys(), deferred init
+- `index.html` — UI with settings, shortcut recording buttons, deferred script load
 - `premiere.jsx` — ExtendScript functions (importAndPlace, importOnly, dispatchAN*)
 - `import_headless.html` — self-contained Import Latest trigger panel
 - `insert_headless.html` — self-contained Insert Latest trigger panel

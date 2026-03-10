@@ -737,27 +737,29 @@ function resetSettings() {
 }
 
 /* ════════════════════════════════════════════════
-   INIT
+   INIT — deferred so first paint completes before heavy work
 ════════════════════════════════════════════════ */
-try {
-    registerAllKeys();
-    loadSettings();
-    writeSettingsFile();
+setTimeout(function () {
+    try {
+        registerAllKeys();
+        loadSettings();
+        writeSettingsFile();
 
-    // Defer the first scan so the UI renders first
-    setTimeout(function () {
-        refreshFileList();
-    }, 50);
+        // Defer the first scan so the UI renders first
+        setTimeout(function () {
+            refreshFileList();
+        }, 50);
 
-    // Ping ExtendScript to confirm JSX is loaded
-    evalScript('ping()').then(function (result) {
-        if (result === 'pong') {
-            setStatus('Connected to Premiere Pro.', 'ok');
-        } else if (result !== 'DEV_MODE') {
-            setStatus('Premiere Pro not responding. Restart the panel.', 'err');
-        }
-    });
-} catch (initErr) {
-    setStatus('Init error: ' + initErr.message, 'err');
-}
+        // Ping ExtendScript to confirm JSX is loaded
+        evalScript('ping()').then(function (result) {
+            if (result === 'pong') {
+                setStatus('Connected to Premiere Pro.', 'ok');
+            } else if (result !== 'DEV_MODE') {
+                setStatus('Premiere Pro not responding. Restart the panel.', 'err');
+            }
+        });
+    } catch (initErr) {
+        setStatus('Init error: ' + initErr.message, 'err');
+    }
+}, 0);
 

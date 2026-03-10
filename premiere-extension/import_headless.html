@@ -94,16 +94,18 @@
             doAction('focus');
         });
 
-        // Polling backup for focus transitions
+        // Polling backup for focus transitions — start after delay to reduce startup load
         var wasFocused = document.hasFocus();
-        setInterval(function () {
-            var focused = document.hasFocus();
-            if (focused && !wasFocused) {
-                log('POLL focus transition');
-                doAction('poll-focus');
-            }
-            wasFocused = focused;
-        }, 200);
+        setTimeout(function () {
+            setInterval(function () {
+                var focused = document.hasFocus();
+                if (focused && !wasFocused) {
+                    log('POLL focus transition');
+                    doAction('poll-focus');
+                }
+                wasFocused = focused;
+            }, 200);
+        }, 1500);
 
         // Check how we were opened
         var hadFocusOnLoad = document.hasFocus();

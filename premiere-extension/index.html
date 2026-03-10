@@ -793,14 +793,21 @@
             // Show ready state
             document.getElementById('statusText').textContent = 'Panel loaded. Loading scripts…';
 
-            // Dynamically load main.js so parse errors are caught
-            var s = document.createElement('script');
-            s.src = 'main.js';
-            s.onerror = function () {
-                document.getElementById('statusText').textContent = 'Failed to load main.js';
-                document.getElementById('statusBar').className = 'status-bar err';
-            };
-            document.body.appendChild(s);
+            // Defer loading main.js by one frame so the panel can paint before heavy init
+            function loadMain() {
+                var s = document.createElement('script');
+                s.src = 'main.js';
+                s.onerror = function () {
+                    document.getElementById('statusText').textContent = 'Failed to load main.js';
+                    document.getElementById('statusBar').className = 'status-bar err';
+                };
+                document.body.appendChild(s);
+            }
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(loadMain);
+            } else {
+                setTimeout(loadMain, 0);
+            }
         })();
     </script>
 </body>
