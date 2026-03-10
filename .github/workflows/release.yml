@@ -10,6 +10,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,6 +24,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: auto-narration-${{ github.ref_name }}.zip
-          generate_release_notes: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
