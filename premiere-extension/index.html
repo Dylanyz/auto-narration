@@ -692,6 +692,14 @@
                         <label for="refreshBeforeLatest">Refresh file list before Import/Insert Latest</label>
                     </div>
 
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="reimportOnInsert">
+                        <label for="reimportOnInsert">Re-import audio for every insert</label>
+                    </div>
+                    <div class="field-hint" style="margin-top: -4px; margin-bottom: 8px;">
+                        When off, the extension reuses an already-imported clip in the target bin instead of adding a duplicate. First use of a file is always imported to the target bin.
+                    </div>
+
                     <hr class="divider">
 
                     <div class="field">

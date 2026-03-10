@@ -59,6 +59,7 @@ var settings = {
     trackIndex: 0,        // 0-based internally, shown as 1-based in UI
     maxFiles: 500,        // 0 = scan all
     refreshBeforeLatest: true,
+    reimportOnInsert: false,
     shortcuts: {
         importLatest: null,
         insertLatest: null
@@ -199,6 +200,7 @@ function populateSettingsForm() {
     document.getElementById('binPathInput').value = settings.binPath;
     document.getElementById('trackIndexInput').value = settings.trackIndex + 1;
     document.getElementById('refreshBeforeLatest').checked = settings.refreshBeforeLatest;
+    document.getElementById('reimportOnInsert').checked = settings.reimportOnInsert === true;
 
     // Max files dropdown
     var select = document.getElementById('maxFilesSelect');
@@ -224,6 +226,7 @@ function saveSettings() {
     settings.binPath = document.getElementById('binPathInput').value.trim();
     settings.trackIndex = Math.max(0, parseInt(document.getElementById('trackIndexInput').value, 10) - 1);
     settings.refreshBeforeLatest = document.getElementById('refreshBeforeLatest').checked;
+    settings.reimportOnInsert = document.getElementById('reimportOnInsert').checked;
 
     // Max files
     var selectVal = document.getElementById('maxFilesSelect').value;
@@ -482,10 +485,11 @@ function insertFile(file) {
 
     var binPath = settings.binPath || '';
     var trackIndex = settings.trackIndex;
+    var reimport = settings.reimportOnInsert === true;
     var jsxPath = file.fullPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     var jsxBin = binPath.replace(/'/g, "\\'");
 
-    var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ")";
+    var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ", " + (reimport ? "true" : "false") + ")";
 
     return evalScript(script).then(function (result) {
         if (result === 'DEV_MODE') {
@@ -729,6 +733,7 @@ function resetSettings() {
             trackIndex: 0,
             maxFiles: 500,
             refreshBeforeLatest: true,
+            reimportOnInsert: false,
             shortcuts: { importLatest: null, insertLatest: null }
         };
         loadSettings();

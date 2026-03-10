@@ -77,8 +77,9 @@
             var jsxPath = filePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             var jsxBin = (s.binPath || '').replace(/'/g, "\\'");
             var trackIndex = s.trackIndex || 0;
+            var reimport = s.reimportOnInsert === true;
 
-            var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ")";
+            var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ", " + (reimport ? "true" : "false") + ")";
             log('INSERT via ' + source + ': ' + filePath.replace(/.*[\/\\]/, ''));
             cep.evalScript(script, function (result) {
                 log('JSX result: ' + String(result));
