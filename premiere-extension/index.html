@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Narration Bridge</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #1a1a1a;
+            --surface: #242424;
+            --surface2: #2e2e2e;
+            --surface3: #383838;
+            --border: #404040;
+            --accent: #4d9cf8;
+            --accent-h: #73b2ff;
+            --success: #3ddc84;
+            --error: #ff6b6b;
+            --text: #f0f0f0;
+            --text-2: #b0b0b0;
+            --text-3: #707070;
+            --radius: 10px;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 12px;
+            overflow: hidden;
+        }
+
+        /* ── Layout ───────────────────────────── */
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Header / Tab bar ─────────────────── */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px 0;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 3px;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            color: var(--text-2);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all .15s;
+        }
+
+        .tab.active {
+            background: var(--surface3);
+            color: var(--text);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            color: var(--text-3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: color .15s, background .15s;
+        }
+
+        .icon-btn:hover {
+            color: var(--text);
+            background: var(--surface2);
+        }
+
+        .icon-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* ── View system ──────────────────────── */
+        .view {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ── Main view ────────────────────────── */
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 12px 14px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all .15s;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 13px;
+            height: 13px;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-h);
+        }
+
+        .btn-primary:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text-2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface3);
+            color: var(--text);
+        }
+
+        /* ── File list ────────────────────────── */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 8px;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-item:hover {
+            background: var(--surface2);
+            border-color: var(--accent);
+        }
+
+        .file-item.selected {
+            background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+            border-color: var(--accent);
+        }
+
+        .file-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--surface2);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .file-icon svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent);
+        }
+
+        .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .file-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta {
+            font-size: 10px;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        .import-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: var(--text-2);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 500;
+            transition: all .15s;
+            flex-shrink: 0;
+        }
+
+        .import-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-3);
+        }
+
+        .empty-state svg {
+            width: 36px;
+            height: 36px;
+            margin-bottom: 10px;
+            opacity: .4;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* ── Status bar ───────────────────────── */
+        .status-bar {
+            padding: 8px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            flex-shrink: 0;
+            min-height: 36px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-3);
+            flex-shrink: 0;
+            transition: background .2s;
+        }
+
+        .status-bar.ok .status-dot {
+            background: var(--success);
+        }
+
+        .status-bar.err .status-dot {
+            background: var(--error);
+        }
+
+        .status-bar.busy .status-dot {
+            background: var(--accent);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .2;
+            }
+        }
+
+        .status-text {
+            font-size: 11px;
+            color: var(--text-2);
+            flex: 1;
+        }
+
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, .15);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Settings form ────────────────────── */
+        .settings-body {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .field input,
+        .field select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+            transition: border-color .15s;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+        }
+
+        .field input::placeholder {
+            color: var(--text-3);
+        }
+
+        .field select option {
+            background: var(--surface2);
+        }
+
+        .field-hint {
+            font-size: 10px;
+            color: var(--text-3);
+            line-height: 1.5;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            border: none;
+        }
+
+        .track-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .track-row .field {
+            flex: 1;
+        }
+
+        .settings-footer {
+            padding: 12px 14px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .settings-footer .btn {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ── Header ─────────────────────────── -->
+        <div class="header">
+            <span class="header-title">Auto Narration</span>
+            <div class="tab-bar">
+                <button class="tab active" data-tab="mainView">Files</button>
+                <button class="tab" data-tab="settingsView">Settings</button>
+            </div>
+        </div>
+
+        <!-- ════ MAIN VIEW ═══════════════════════ -->
+        <div class="view active" id="mainView">
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button class="btn btn-primary" id="importLatestBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Import Latest
+                </button>
+                <button class="btn btn-secondary" id="refreshBtn" title="Refresh file list">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- File list -->
+            <div class="scroll-area">
+                <div class="section-label" id="fileCountLabel">Recent Files</div>
+                <div class="file-list" id="fileList">
+                    <div class="empty-state" id="emptyState">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                            <polyline points="13 2 13 9 20 9" />
+                        </svg>
+                        <p>No audio files found.<br>Check Settings to configure your folder.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status bar -->
+            <div class="status-bar" id="statusBar">
+                <div class="status-dot"></div>
+                <span class="status-text" id="statusText">Loading…</span>
+            </div>
+        </div>
+
+        <!-- ════ SETTINGS VIEW ═══════════════════ -->
+        <div class="view" id="settingsView">
+            <div class="scroll-area">
+                <div class="settings-body">
+
+                    <!-- Watch folder -->
+                    <div class="field">
+                        <label>Audio Files Folder</label>
+                        <input type="text" id="folderPathInput" placeholder="/Users/you/Documents/VO-Files">
+                        <span class="field-hint">This is the same folder you configured in the Google Docs plugin. All
+                            generated <code>AutoVO_</code> files will be listed here.</span>
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- Premiere target bin -->
+                    <div class="field">
+                        <label>Target Bin</label>
+                        <input type="text" id="binPathInput" placeholder="Audio/VO  (leave empty for project root)">
+                        <span class="field-hint">Nested bins are supported using forward slashes, e.g.
+                            <code>Audio/VO/Temp</code>. The bin will be created if it doesn't exist.</span>
+                    </div>
+
+                    <!-- Track index -->
+                    <div class="field">
+                        <label>Audio Track (1-based)</label>
+                        <input type="number" id="trackIndexInput" value="1" min="1" max="99">
+                        <span class="field-hint">Which audio track in your sequence to insert onto. Track 1 = first
+                            audio track (A1).</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
