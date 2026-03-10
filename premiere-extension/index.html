@@ -543,6 +543,7 @@
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
                     Import Latest
+                    <span class="shortcut-hint" id="importShortcutHint"></span>
                 </button>
                 <button class="btn btn-insert" id="insertLatestBtn" title="Import and insert latest at playhead">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
@@ -551,6 +552,7 @@
                         <polyline points="12 5 19 12 12 19" />
                     </svg>
                     Insert Latest
+                    <span class="shortcut-hint" id="insertShortcutHint"></span>
                 </button>
                 <button class="btn btn-secondary" id="refreshBtn" title="Refresh file list">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -644,21 +646,33 @@
                     <hr class="divider">
 
                     <div class="field">
-                        <label>Keyboard Shortcuts</label>
-                        <div style="margin-top: 4px; color: var(--text-2); line-height: 1.5;">
-                            Premiere Pro does not deliver key events to extension panels reliably, so shortcuts are
-                            assigned via <b>menu commands</b>. The Auto Narration panel must be open (can be in background).
+                        <label>Panel Shortcuts (when panel is focused)</label>
+                        <span class="field-hint">Work when this panel is focused. Only single keys work
+                            (no Cmd/Ctrl/Shift combos). Recommended: <b>F2</b> = Import, <b>F3</b> = Insert.</span>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                            <span style="flex: 1; font-size: 12px; color: var(--text);">Import Latest</span>
+                            <button class="shortcut-btn" id="importShortcutBtn" data-action="importLatest" type="button">None</button>
+                            <button class="btn btn-secondary" id="clearImportShortcut" type="button" style="padding: 5px 8px; font-size: 10px;">Clear</button>
                         </div>
-                        <div style="margin-top: 10px; font-size: 11px; font-weight: 600; color: var(--text-3);">macOS (recommended)</div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                            <span style="flex: 1; font-size: 12px; color: var(--text);">Insert Latest</span>
+                            <button class="shortcut-btn" id="insertShortcutBtn" data-action="insertLatest" type="button">None</button>
+                            <button class="btn btn-secondary" id="clearInsertShortcut" type="button" style="padding: 5px 8px; font-size: 10px;">Clear</button>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="field">
+                        <label>Global Shortcuts (work from timeline)</label>
                         <div style="margin-top: 4px; color: var(--text-2); line-height: 1.5;">
+                            For shortcuts that work <b>while editing the timeline</b> (panel doesn't need focus),
+                            use macOS App Shortcuts. The Auto Narration panel must be open (can be in background).
+                        </div>
+                        <div style="margin-top: 8px; color: var(--text-2); line-height: 1.5;">
                             1. <b>System Settings</b> → Keyboard → Keyboard Shortcuts → App Shortcuts<br>
                             2. Click <b>+</b>, Application: <b>Adobe Premiere Pro</b><br>
-                            3. Menu Title: paste <b>exactly</b> one of the titles below (use Copy). Assign your key.
-                        </div>
-                        <div style="margin-top: 10px; font-size: 11px; font-weight: 600; color: var(--text-3);">Premiere Pro</div>
-                        <div style="margin-top: 4px; color: var(--text-2); line-height: 1.5;">
-                            <b>Edit → Keyboard Shortcuts</b> (or Premiere Pro → Keyboard Shortcuts). Search for &quot;AN&quot; or
-                            &quot;Import Latest&quot; and assign keys to the commands below if they appear.
+                            3. Menu Title: paste <b>exactly</b> one of the titles below. Assign your key.
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
                             <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Import Latest</code>
@@ -667,6 +681,10 @@
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
                             <code style="flex: 1; font-size: 11px; color: var(--text); background: var(--surface); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border);">AN: Insert Latest</code>
                             <button class="btn btn-secondary" id="copyInsertTitle" type="button" style="padding: 5px 10px; font-size: 10px;">Copy</button>
+                        </div>
+                        <div style="margin-top: 8px; color: var(--text-3); font-size: 10px; line-height: 1.4;">
+                            The shortcut panels auto-start with Premiere — no need to open them manually.
+                            You can verify they exist under <b>Window → Extensions</b>.
                         </div>
                     </div>
 

@@ -52,15 +52,128 @@ var settings = {
     binPath: 'Audio/VO',
     trackIndex: 0,        // 0-based internally, shown as 1-based in UI
     maxFiles: 500,        // 0 = scan all
-    refreshBeforeLatest: true
+    refreshBeforeLatest: true,
+    shortcuts: {
+        importLatest: null,
+        insertLatest: null
+    }
 };
+
+/* ════════════════════════════════════════════════
+   REGISTER ALL KEYS  (macOS native keyCodes)
+   
+   On macOS, registerKeyEventsInterest expects Carbon virtual keyCodes (0-127),
+   NOT DOM keyCodes. Without registering, Premiere intercepts every keystroke
+   and plays the alert sound. We register ALL keyCodes (0-127) with all modifier
+   combos so the panel receives every possible key event when focused.
+   
+   CAVEAT: Cmd/Meta key combos CANNOT be captured on macOS regardless.
+════════════════════════════════════════════════ */
+function registerAllKeys() {
+    if (!_cep || !_cep.registerKeyEventsInterest) return;
+
+    var keys = [];
+    for (var kc = 0; kc < 128; kc++) {
+        keys.push({ keyCode: kc });
+    }
+    try {
+        _cep.registerKeyEventsInterest(JSON.stringify(keys));
+    } catch (e) {
+        console.warn('registerKeyEventsInterest failed:', e);
+    }
+}
+
+/* ════════════════════════════════════════════════
+   PANEL SHORTCUT SYSTEM
+════════════════════════════════════════════════ */
+var KEY_NAMES = {
+    8: '⌫', 9: 'Tab', 13: '↵', 27: 'Esc',
+    32: 'Space', 37: '←', 38: '↑', 39: '→', 40: '↓', 46: 'Del',
+    48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6', 55: '7', 56: '8', 57: '9',
+    65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G', 72: 'H', 73: 'I',
+    74: 'J', 75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 80: 'P', 81: 'Q', 82: 'R',
+    83: 'S', 84: 'T', 85: 'U', 86: 'V', 87: 'W', 88: 'X', 89: 'Y', 90: 'Z',
+    112: 'F1', 113: 'F2', 114: 'F3', 115: 'F4', 116: 'F5', 117: 'F6',
+    118: 'F7', 119: 'F8', 120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12',
+    186: ';', 187: '=', 188: ',', 189: '-', 190: '.', 191: '/', 192: '`',
+    219: '[', 220: '\\', 221: ']', 222: "'"
+};
+
+function shortcutLabel(sc) {
+    if (!sc || !sc.keyCode) return 'None';
+    var parts = [];
+    if (sc.ctrlKey) parts.push('Ctrl');
+    if (sc.altKey) parts.push('⌥');
+    if (sc.shiftKey) parts.push('⇧');
+    if (sc.metaKey) parts.push('⌘');
+    parts.push(KEY_NAMES[sc.keyCode] || ('Key' + sc.keyCode));
+    return parts.join('+');
+}
+
+function shortcutMatches(event, sc) {
+    if (!sc || !sc.keyCode) return false;
+    return event.keyCode === sc.keyCode &&
+        !!event.shiftKey === !!sc.shiftKey &&
+        !!event.altKey === !!sc.altKey &&
+        !!event.ctrlKey === !!sc.ctrlKey;
+}
+
+var activeRecordingBtn = null;
+
+document.addEventListener('keydown', function (e) {
+    // If recording a shortcut, handle that first
+    if (activeRecordingBtn) {
+        if ([16, 17, 18, 91, 93, 224].indexOf(e.keyCode) !== -1) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var sc = {
+            keyCode: e.keyCode,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey,
+            ctrlKey: e.ctrlKey,
+            metaKey: false
+        };
+
+        var actionName = activeRecordingBtn.getAttribute('data-action');
+        settings.shortcuts[actionName] = sc;
+        activeRecordingBtn.textContent = shortcutLabel(sc);
+        activeRecordingBtn.classList.remove('recording');
+        activeRecordingBtn = null;
+        updateShortcutHints();
+        return;
+    }
+
+    // Normal shortcut execution
+    var sc = settings.shortcuts || {};
+    if (shortcutMatches(e, sc.importLatest)) {
+        e.preventDefault();
+        importLatest();
+    } else if (shortcutMatches(e, sc.insertLatest)) {
+        e.preventDefault();
+        insertLatest();
+    }
+}, true);
+
+function updateShortcutHints() {
+    var sc = settings.shortcuts || {};
+    var importHint = document.getElementById('importShortcutHint');
+    var insertHint = document.getElementById('insertShortcutHint');
+    if (importHint) importHint.textContent = sc.importLatest ? shortcutLabel(sc.importLatest) : '';
+    if (insertHint) insertHint.textContent = sc.insertLatest ? shortcutLabel(sc.insertLatest) : '';
+}
 
 function loadSettings() {
     try {
         var raw = localStorage.getItem(SETTINGS_KEY);
         if (raw) {
             var saved = JSON.parse(raw);
+            var savedShortcuts = saved.shortcuts;
+            delete saved.shortcuts;
             Object.assign(settings, saved);
+            if (savedShortcuts) {
+                settings.shortcuts = Object.assign({}, settings.shortcuts, savedShortcuts);
+            }
         }
     } catch (e) { }
 
@@ -92,6 +205,12 @@ function populateSettingsForm() {
     else { select.value = 'custom'; customInput.value = val; }
 
     customInput.style.display = (select.value === 'custom') ? '' : 'none';
+
+    // Shortcut buttons
+    var sc = settings.shortcuts || {};
+    document.getElementById('importShortcutBtn').textContent = shortcutLabel(sc.importLatest);
+    document.getElementById('insertShortcutBtn').textContent = shortcutLabel(sc.insertLatest);
+    updateShortcutHints();
 }
 
 function saveSettings() {
@@ -465,6 +584,34 @@ document.getElementById('fileList').addEventListener('click', function (e) {
     }
 });
 
+// ── Panel Shortcut Button Listeners ──
+document.getElementById('importShortcutBtn').addEventListener('click', function () {
+    if (activeRecordingBtn) activeRecordingBtn.classList.remove('recording');
+    activeRecordingBtn = this;
+    this.classList.add('recording');
+    this.textContent = 'Press key…';
+});
+document.getElementById('insertShortcutBtn').addEventListener('click', function () {
+    if (activeRecordingBtn) activeRecordingBtn.classList.remove('recording');
+    activeRecordingBtn = this;
+    this.classList.add('recording');
+    this.textContent = 'Press key…';
+});
+document.getElementById('clearImportShortcut').addEventListener('click', function () {
+    var btn = document.getElementById('importShortcutBtn');
+    if (activeRecordingBtn === btn) { btn.classList.remove('recording'); activeRecordingBtn = null; }
+    settings.shortcuts.importLatest = null;
+    btn.textContent = 'None';
+    updateShortcutHints();
+});
+document.getElementById('clearInsertShortcut').addEventListener('click', function () {
+    var btn = document.getElementById('insertShortcutBtn');
+    if (activeRecordingBtn === btn) { btn.classList.remove('recording'); activeRecordingBtn = null; }
+    settings.shortcuts.insertLatest = null;
+    btn.textContent = 'None';
+    updateShortcutHints();
+});
+
 // ── Copy Menu Title Buttons (for assigning shortcuts in Premiere / macOS) ──
 
 function copyToClipboard(text) {
@@ -490,13 +637,18 @@ document.getElementById('copyInsertTitle').addEventListener('click', function ()
 });
 
 // ── Menu / shortcut commands (AN: Import Latest, AN: Insert Latest) ──
-// When the user triggers the menu item (or a key assigned to it in Premiere/macOS), the
-// headless panel runs JSX which dispatches a CSXSEvent. We listen here and run the action.
+// The headless panels trigger via two mechanisms; we listen for both.
+
+// Mechanism 1: CSXS events dispatched from JSX via PlugPlugExternalObject.
+// __adobe_cep__.addEventListener expects a string (JS expression to eval), not a function ref.
+window._AN_handleImport = function () { importLatest(); };
+window._AN_handleInsert = function () { insertLatest(); };
 if (_cep && _cep.addEventListener) {
-    _cep.addEventListener('AN_CMD_IMPORT', function () { importLatest(); });
-    _cep.addEventListener('AN_CMD_INSERT', function () { insertLatest(); });
+    try { _cep.addEventListener('AN_CMD_IMPORT', 'window._AN_handleImport()'); } catch (e) { }
+    try { _cep.addEventListener('AN_CMD_INSERT', 'window._AN_handleInsert()'); } catch (e) { }
 }
-// Fallback: storage event (if headless and main share origin in some CEP setups)
+
+// Mechanism 2: localStorage written by headless panels (cross-panel storage event).
 window.addEventListener('storage', function (e) {
     if (e.key === 'AN_CMD_IMPORT') importLatest();
     else if (e.key === 'AN_CMD_INSERT') insertLatest();
@@ -512,7 +664,8 @@ function resetSettings() {
             binPath: 'Audio/VO',
             trackIndex: 0,
             maxFiles: 500,
-            refreshBeforeLatest: true
+            refreshBeforeLatest: true,
+            shortcuts: { importLatest: null, insertLatest: null }
         };
         loadSettings();
         setStatus('Settings reset to defaults.', 'ok');
@@ -523,6 +676,7 @@ function resetSettings() {
    INIT
 ════════════════════════════════════════════════ */
 try {
+    registerAllKeys();
     loadSettings();
 
     // Defer the first scan so the UI renders first

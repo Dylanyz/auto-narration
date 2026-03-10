@@ -73,6 +73,9 @@
         </Resources>
         <Lifecycle>
           <AutoVisible>false</AutoVisible>
+          <StartOn>
+            <Event>applicationActivate</Event>
+          </StartOn>
         </Lifecycle>
         <UI>
           <Type>Panel</Type>
@@ -100,6 +103,9 @@
         </Resources>
         <Lifecycle>
           <AutoVisible>false</AutoVisible>
+          <StartOn>
+            <Event>applicationActivate</Event>
+          </StartOn>
         </Lifecycle>
         <UI>
           <Type>Panel</Type>
