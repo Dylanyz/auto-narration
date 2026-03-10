@@ -469,41 +469,13 @@ document.getElementById('fileList').addEventListener('click', function (e) {
 
 
 // ── Headless Extension Listener ──
-// Wait for panel to open
+// Headless extensions don't have direct access to the Node.js context variables, so they 
+// write a timestamp to localStorage to trigger the main panel to do the work.
 window.addEventListener('storage', function (e) {
     if (e.key === 'AN_CMD_IMPORT') {
         importLatest();
     } else if (e.key === 'AN_CMD_INSERT') {
         insertLatest();
-    }
-});
-
-// ── Auto-Bind Mac Shortcuts ──
-document.getElementById('autoBindMacShortcutsBtn').addEventListener('click', function () {
-    if (require('os').platform() !== 'darwin') {
-        alert('This magical quick-bind button is a macOS exclusive feature!');
-        return;
-    }
-
-    var cp = require('child_process');
-    var cmd1 = 'defaults write com.adobe.PremierePro.25 NSUserKeyEquivalents -dict-add "AN: Import Latest" "@$i"';
-    var cmd2 = 'defaults write com.adobe.PremierePro.25 NSUserKeyEquivalents -dict-add "AN: Insert Latest" "@^$i"';
-    var cmd3 = 'killall cfprefsd'; // Force macOS to commit the new dictionary 
-
-    try {
-        cp.execSync(cmd1);
-        cp.execSync(cmd2);
-        cp.execSync(cmd3);
-
-        alert(
-            "✨ Success!\n\n" +
-            "Your Mac has magically bound the shortcuts:\n" +
-            "• Import Latest = Cmd+Shift+I\n" +
-            "• Insert Latest = Cmd+Ctrl+Shift+I\n\n" +
-            "IMPORTANT: You must fully Quit and Reopen Premiere Pro for them to activate!"
-        );
-    } catch (e) {
-        alert("Failed to auto-bind. You can still set them manually in System Settings > Keyboard > App Shortcuts. Error: " + e.message);
     }
 });
 

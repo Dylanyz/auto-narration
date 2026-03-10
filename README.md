@@ -82,7 +82,7 @@ Here is exactly how to use every setting in the tool!
 ### 📄 The Google Docs Add-on
 *   **The Sidebar:** Open it inside any Google Doc via `Extensions ➡️ Auto Narration`.
 *   **Generate Audio:** Highlight your script text in the document and click the big blue Generate button.
-*   **Auto-Save:** On your first click, your browser will ask you to pick a folder. It will seamlessly save all future audio files to this folder instantly.
+*   **Auto-Save:** Audio files will automatically be downloaded and saved directly to your browser's default Downloads folder.
 
 ### 🌐 The Chrome Extension (Optional)
 *   **Webpage Extraction:** Highlight text on any public webpage or PDF, right-click, and select "Generate Narration".

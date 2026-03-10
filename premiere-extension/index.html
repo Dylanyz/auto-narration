@@ -648,14 +648,17 @@
                     <div class="field">
                         <label>Global Keyboard Shortcuts</label>
                         <div style="margin-top: 4px; color: var(--text-2); line-height: 1.4;">
-                            You can now set native, global Premiere shortcuts for Insert/Import!<br><br>
-                            1. Go to <b>Edit</b> > <b>Keyboard Shortcuts</b> (or Premiere Pro > Keyboard Shortcuts on
-                            Mac).<br>
-                            2. Search for <b>AN: Insert Latest</b> or <b>AN: Import Latest</b>.<br>
-                            3. Assign any key combination you want.<br>
+                            Because Adobe blocks extensions from capturing global shortcuts while Editing, you must use
+                            <b>macOS Native App Shortcuts</b> for them to work while editing.<br><br>
+                            1. Open your Mac's <b>System Settings > Keyboard > Keyboard Shortcuts > App
+                                Shortcuts</b><br>
+                            2. Add a new shortcut, and choose <b>Adobe Premiere Pro 2025</b> as the app.<br>
+                            3. Set the Menu Title perfectly to one of the following:<br>
+                            &nbsp;&nbsp;• `AN: Insert Latest`<br>
+                            &nbsp;&nbsp;• `AN: Import Latest`<br>
+                            4. Click the "Keyboard Shortcut" field and assign your shortcut (e.g. <i>Shift+N</i>).<br>
                             <br>
-                            <i>Note: They will work anywhere in Premiere, as long as this main panel is open in your
-                                workspace.</i>
+                            <i>This tricks macOS into invisibly clicking the command, bypassing Premiere entirely!</i>
                         </div>
                         <div style="margin-top: 14px;">
                             <button class="btn btn-secondary" id="resetSettingsBtn"
