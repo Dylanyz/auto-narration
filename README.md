@@ -8,10 +8,12 @@ Welcome! This tool makes adding AI voiceovers to your videos **super fast** and 
 
 It bridges the gap between your script and your video editor in two simple steps:
 
-**1. The Chrome Extension (Text to Speech)**
-- 📝 Highlight text on **any webpage** or **Google Doc**
-- 🖱️ Right-click and choose **"Generate Narration"** (or use the popup menu)
-- 🪄 It instantly creates a high-quality AI voiceover using ElevenLabs and saves it directly to your computer.
+**1. The Google Docs Add-on (Primary Text to Speech)**
+- 📝 Perfect for scriptwriting. Lives directly inside a handy sidebar right next to your Google Doc.
+- 🪄 Highlight your script, smash "Generate Audio", and it instantly creates a high-quality AI voiceover using ElevenLabs that saves directly to your computer.
+
+**1.5. The Chrome Extension (Optional Backup)**
+- 🌐 Want to narrate a random webpage or PDF? Use the companion Chrome Extension to highlight text *anywhere* on the web and generate audio from the right-click menu.
 
 **2. The Premiere Pro Extension (Auto Import/Insert)**
 - 🎬 Open Premiere Pro
@@ -25,28 +27,9 @@ It bridges the gap between your script and your video editor in two simple steps
 
 Don't worry if you've never used code or the terminal before. Just follow these steps one by one. We will hold your hand!
 
-### Part 1: Install the Chrome Extension
+### Part 1: Install the Google Docs Add-on
 
-1. Open the **Google Chrome** browser.
-2. Type `chrome://extensions/` into your address bar and press Enter.
-3. Turn on **Developer mode** (it's a little toggle switch in the top right corner).
-4. Click the **Load unpacked** button (top left).
-5. A file window will pop up. Find this exact folder: `auto-narration` ➡️ `chrome-extension` and select it.
-6. 🧩 **Pro Tip:** Pin the extension to your browser bar for easy access! Click the puzzle piece icon in Chrome (top right), find "Auto Narration", and click the little pushpin icon.
-
-### Part 1.5: Get Your Free AI Voice (API Key)
-
-To make the voices talk, we use ElevenLabs. You just need to paste in a secret key to link your account!
-1. Go to [ElevenLabs.io](https://elevenlabs.io/) and create a free account.
-2. Click your profile icon in the bottom left corner and select **Profile + API key**.
-3. Click the eye icon to reveal your **API Key**, and copy it.
-4. Open the **Auto Narration** Chrome extension by clicking its icon in your browser.
-5. Click the little Gear Icon ⚙️ to open Settings.
-6. Paste your API Key into the box. You're ready to go!
-
-### Part 2: Install the Google Docs Add-on (Optional Backup)
-
-If you write scripts in Google Docs, we have a custom built-in sidebar just for you! It's super fast to hook up:
+Since you write scripts in Google Docs, we built a custom native sidebar just for you! It's super fast to hook up:
 
 1. 🔗 **Open this link:** [Auto Narration Docs Add-on](https://script.google.com/d/1mOMwLVAiIJYbG8XJv05JvePI5FMxP18GSjRonltXRmh48RLvrvtQXUqV/edit?usp=sharing)
 2. 🚀 Click the blue **Deploy** button (top right) ➡️ **Test deployments**.
@@ -55,9 +38,29 @@ If you write scripts in Google Docs, we have a custom built-in sidebar just for 
 5. 📄 Set **Test document** to whichever document you want it to be active on!
 6. 💾 Click **Install**, then click **Done**.
 
-*(Note: Google might ask you to authorize it since it's a custom app. Just click your account ➡️ Advanced ➡️ Go to Auto Narration ➡️ Allow!)*
+*(Note: Google will ask you to authorize it since it's a custom app. Just click your account ➡️ Advanced ➡️ Go to Auto Narration ➡️ Allow!)*
 
-### Part 3: Install the Premiere Pro Extension
+### Part 1.5: Get Your Free AI Voice (API Key)
+
+To make the voices talk, we use ElevenLabs. You just need to paste in a secret key to link your account!
+1. Go to [ElevenLabs.io](https://elevenlabs.io/) and create a free account.
+2. Click your profile icon in the bottom left corner and select **Profile + API key**.
+3. Click the eye icon to reveal your **API Key**, and copy it.
+4. Open the **Auto Narration** sidebar inside your Google Doc (Extensions ➡️ Auto Narration).
+5. Paste your API Key into the Settings box and generate!
+
+### Part 1.7: Install the Chrome Extension (Optional)
+
+If you ever need to generate audio from a random webpage and not just Google Docs, install this backup tool:
+
+1. Open **Google Chrome**.
+2. Type `chrome://extensions/` into your address bar and press Enter.
+3. Turn on **Developer mode** (toggle switch top right).
+4. Click **Load unpacked** (top left).
+5. Select the `auto-narration` ➡️ `chrome-extension` folder.
+6. 🧩 **Pro Tip:** Pin it to your browser bar for easy access!
+
+### Part 2: Install the Premiere Pro Extension
 
 You only have to do this once! (Mac only, Premiere Pro 2021 or newer). 
 
@@ -76,15 +79,14 @@ You only have to do this once! (Mac only, Premiere Pro 2021 or newer).
 
 Here is exactly how to use every setting in the tool!
 
-### 🌐 The Chrome Extension
-*   **Generate Narration:** Highlight any text, right click, and click "Generate Narration". It will download an audio file.
-*   **Pop-up Menu:** Click the extension icon in your Chrome bar. Here, you can see the text you selected and click a big "Generate Audio" button.
-*   **Google Docs Integration:** If you are working in Google Docs, you can open a built-in sidebar perfectly tailored for your writing environment!
-*   **Settings (The Gear Icon ⚙️):**
-    *   **API Key:** Paste your ElevenLabs API Key here to link your account.
-    *   **Voice:** Pick your favorite AI voice from your ElevenLabs library.
-    *   **Model:** Choose the AI model. "Multilingual v2" is recommended for the best quality!
-    *   **Google Docs:** Choose whether to automatically open the sidebar when you visit Google Docs.
+### 📄 The Google Docs Add-on
+*   **The Sidebar:** Open it inside any Google Doc via `Extensions ➡️ Auto Narration`.
+*   **Generate Audio:** Highlight your script text in the document and click the big blue Generate button.
+*   **Auto-Save:** On your first click, your browser will ask you to pick a folder. It will seamlessly save all future audio files to this folder instantly.
+
+### 🌐 The Chrome Extension (Optional)
+*   **Webpage Extraction:** Highlight text on any public webpage or PDF, right-click, and select "Generate Narration".
+*   **Pop-up Text Pad:** Click the extension icon in your Chrome bar to paste custom text and generate it on the fly.
 
 ### 🎬 The Premiere Pro Extension
 *   **Import Latest:** Grabs your newest audio file and adds it to your project bin, *without* putting it on the timeline so you can place it manually.

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Narration</title>
+    <style>
+        :root {
+            --bg: #1a1a1e;
+            --surface: #242428;
+            --surface2: #2e2e33;
+            --border: #3a3a40;
+            --text: #e8e8ec;
+            --text-2: #a0a0a8;
+            --text-3: #6e6e78;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --radius: 10px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 360px;
+            min-height: 200px;
+            max-height: 560px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            overflow-y: auto;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            color: var(--text-3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: color .15s, background .15s;
+        }
+
+        .icon-btn:hover {
+            color: var(--text);
+            background: var(--surface2);
+        }
+
+        .icon-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ── Views ── */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Status chip ── */
+        .status-chip {
+            margin: 12px 16px 0;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-chip .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-chip .dot.idle {
+            background: var(--text-3);
+        }
+
+        .status-chip .dot.success {
+            background: var(--success);
+        }
+
+        .status-chip .dot.error {
+            background: var(--error);
+        }
+
+        .status-chip .dot.working {
+            background: var(--accent);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: .4;
+            }
+        }
+
+        /* ── Selected text preview ── */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-3);
+            padding: 12px 16px 6px;
+        }
+
+        .text-preview {
+            margin: 0 16px;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 12px;
+            color: var(--text-2);
+            max-height: 80px;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ── Generate button ── */
+        .action-area {
+            padding: 12px 16px 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all .15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ── Settings form ── */
+        .settings-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+            max-height: 440px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .field label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--text-2);
+        }
+
+        .field input,
+        .field select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+        }
+
+        .field-hint {
+            font-size: 11px;
+            color: var(--text-3);
+            line-height: 1.5;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .checkbox-row input {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-row label {
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text);
+        }
+
+        .voice-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .voice-row select {
+            flex: 1;
+        }
+
+        .voice-row .btn {
+            width: auto;
+            padding: 9px 14px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            border: none;
+        }
+
+        .settings-footer {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .settings-footer .btn {
+            flex: 1;
+        }
+
+        /* ── Right-click hint ── */
+        .hint-bar {
+            margin: 0 16px 12px;
+            padding: 8px 10px;
+            background: #1e293b;
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--text-3);
+            line-height: 1.4;
+        }
+
+        .hint-bar strong {
+            color: var(--text-2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════ MAIN VIEW ══════════ -->
+    <div id="mainView" class="view active">
+        <div class="header" style="justify-content: flex-start; gap: 16px;">
+            <h1 style="flex: 1;">Auto Narration</h1>
+            <div class="header-actions">
+                <!-- Text Label Button -->
+                <button class="icon-btn" id="openSidebarBtn" title="Open Google Docs Sidebar"
+                    style="display: none; background: var(--surface2); color: var(--text); font-size: 11px; font-weight: 600; padding: 5px 10px; gap: 6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="15" y1="3" x2="15" y2="21" />
+                    </svg>
+                    Docs Sidebar
+                </button>
+                <button class="icon-btn" id="closeSidebarBtn" title="Close Sidebar" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+                <button class="icon-btn" id="refreshBtn" title="Re-read selection from page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="status-chip" id="statusChip">
+            <span class="dot idle" id="statusDot"></span>
+            <span id="statusText">Select text on any page, then click Generate.</span>
+        </div>
+
+        <div class="section-label">SELECTED TEXT</div>
+        <div class="text-preview" id="textPreview">Highlight text on any webpage…</div>
+
+        <div class="action-area">
+            <button class="btn btn-primary" id="generateBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+                Generate Audio
+            </button>
+        </div>
+
+        <div class="hint-bar">
+            <strong>Tip:</strong> You can also right-click selected text and choose<br>"Generate Narration" from the
+            context menu.
+        </div>
+    </div>
+
+    <!-- ══════════ SETTINGS VIEW ══════════ -->
+    <div id="settingsView" class="view">
+        <div class="header">
+            <h1>Settings</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="closeSettingsBtn" title="Close settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-body">
+            <!-- API Key -->
+            <div class="field">
+                <label>ElevenLabs API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="sk_…">
+                <span class="field-hint">Get yours at <strong>elevenlabs.io/app/settings/api-keys</strong></span>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Voice -->
+            <div class="field">
+                <label>Voice</label>
+                <div class="voice-row">
+                    <select id="voiceSelect">
+                        <option value="">— enter API key first —</option>
+                    </select>
+                    <button class="btn btn-secondary" id="loadVoicesBtn">Load</button>
+                </div>
+            </div>
+
+            <!-- Model -->
+            <div class="field">
+                <label>Model</label>
+                <select id="modelSelect">
+                    <option value="eleven_multilingual_v2">Multilingual v2 (recommended)</option>
+                    <option value="eleven_turbo_v2_5">Turbo v2.5 (faster)</option>
+                    <option value="eleven_turbo_v2">Turbo v2</option>
+                    <option value="eleven_monolingual_v1">English v1</option>
+                </select>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Sidebar Toggle -->
+            <div class="field">
+                <label>Google Docs</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="autoOpenSidebarInput">
+                    <label for="autoOpenSidebarInput">Open sidebar automatically on Docs pages</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <button class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

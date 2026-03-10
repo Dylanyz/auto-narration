@@ -7,6 +7,8 @@
 
   <ExtensionList>
     <Extension Id="com.autonarration.panel" Version="1.0.0"/>
+    <Extension Id="com.autonarration.import" Version="1.0.0"/>
+    <Extension Id="com.autonarration.insert" Version="1.0.0"/>
   </ExtensionList>
 
   <ExecutionEnvironment>
@@ -53,6 +55,58 @@
               <Height>300</Height>
               <Width>260</Width>
             </MinSize>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+
+    <!-- Headless Extension: Import Latest -->
+    <Extension Id="com.autonarration.import">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./import_headless.html</MainPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>false</AutoVisible>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>AN: Import Latest</Menu>
+          <Geometry>
+            <Size>
+              <Height>0</Height>
+              <Width>0</Width>
+            </Size>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+
+    <!-- Headless Extension: Insert Latest -->
+    <Extension Id="com.autonarration.insert">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./insert_headless.html</MainPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>false</AutoVisible>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>AN: Insert Latest</Menu>
+          <Geometry>
+            <Size>
+              <Height>0</Height>
+              <Width>0</Width>
+            </Size>
           </Geometry>
         </UI>
       </DispatchInfo>

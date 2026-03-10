@@ -21,7 +21,7 @@
  */
 function importAndPlace(filePath, binPath, trackIndex) {
   try {
-    var project  = app.project;
+    var project = app.project;
     var sequence = project.activeSequence;
 
     if (!sequence) {
@@ -64,10 +64,10 @@ function importAndPlace(filePath, binPath, trackIndex) {
     var tracks = sequence.audioTracks;
     if (trackIndex < 0 || trackIndex >= tracks.numTracks) {
       return 'ERROR: Audio track ' + (trackIndex + 1) + ' does not exist. ' +
-             'The sequence has ' + tracks.numTracks + ' audio track(s).';
+        'The sequence has ' + tracks.numTracks + ' audio track(s).';
     }
 
-    var track    = tracks[trackIndex];
+    var track = tracks[trackIndex];
     var playhead = sequence.getPlayerPosition();
 
     // Insert clip at playhead (pushes downstream clips forward)
@@ -126,6 +126,59 @@ function findItemByName(bin, name) {
     }
   }
   return null;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Import only — add to bin, do NOT place on timeline
+// ─────────────────────────────────────────────────────────────
+/**
+ * Import an audio file into the specified bin without
+ * inserting it into any sequence.
+ *
+ * @param {string} filePath - Absolute path to the audio file
+ * @param {string} binPath  - Slash-separated bin path (empty = root)
+ * @returns {string} "OK" or error message
+ */
+function importOnly(filePath, binPath) {
+  try {
+    var project = app.project;
+
+    var file = new File(filePath);
+    if (!file.exists) {
+      return 'ERROR: File not found: ' + filePath;
+    }
+
+    var targetBin = binPath && binPath.trim()
+      ? getOrCreateBin(project.rootItem, binPath.trim())
+      : project.rootItem;
+
+    project.importFiles(
+      [filePath],
+      true,      // suppressUI
+      targetBin,
+      false      // not as numbered stills
+    );
+
+    return 'OK';
+
+  } catch (e) {
+    return 'ERROR: ' + (e.message || String(e));
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Folder picker — opens a native dialog
+// ─────────────────────────────────────────────────────────────
+function browseForFolder() {
+  try {
+    var folder = Folder.selectDialog('Select the folder containing your audio files');
+    if (folder) {
+      return folder.fsName;   // native OS path
+    }
+    return '';  // user cancelled
+  } catch (e) {
+    return 'ERROR: ' + (e.message || String(e));
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

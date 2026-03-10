@@ -34,7 +34,7 @@
         body {
             height: 100%;
             width: 100%;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg);
             color: var(--text);
             font-size: 12px;
@@ -96,28 +96,6 @@
             color: var(--text);
         }
 
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            color: var(--text-3);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            transition: color .15s, background .15s;
-        }
-
-        .icon-btn:hover {
-            color: var(--text);
-            background: var(--surface2);
-        }
-
-        .icon-btn svg {
-            width: 15px;
-            height: 15px;
-        }
-
         /* ── View system ──────────────────────── */
         .view {
             display: none;
@@ -148,18 +126,19 @@
         /* ── Main view ────────────────────────── */
         .toolbar {
             display: flex;
-            gap: 8px;
-            padding: 12px 14px;
+            gap: 6px;
+            padding: 10px 14px;
             flex-shrink: 0;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
         }
 
         .btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            padding: 7px 12px;
+            gap: 5px;
+            padding: 7px 10px;
             border-radius: 8px;
             border: none;
             cursor: pointer;
@@ -203,6 +182,62 @@
             color: var(--text);
         }
 
+        .btn-insert {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--accent);
+            flex: 1;
+        }
+
+        .btn-insert:hover:not(:disabled) {
+            background: color-mix(in srgb, var(--accent) 20%, var(--surface2));
+        }
+
+        .btn-insert:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .shortcut-hint {
+            font-size: 9px;
+            opacity: .5;
+            margin-left: 2px;
+        }
+
+        .shortcut-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100px;
+            text-align: center;
+            outline: none;
+        }
+
+        .shortcut-btn.recording {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+            color: var(--accent);
+            animation: pulse-border 1s infinite;
+        }
+
+        @keyframes pulse-border {
+
+            0%,
+            100% {
+                border-color: var(--accent);
+            }
+
+            50% {
+                border-color: transparent;
+            }
+        }
+
         /* ── File list ────────────────────────── */
         .section-label {
             font-size: 10px;
@@ -224,21 +259,15 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 10px 12px;
-            cursor: pointer;
-            transition: all .15s;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: all .15s;
         }
 
         .file-item:hover {
             background: var(--surface2);
-            border-color: var(--accent);
-        }
-
-        .file-item.selected {
-            background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-            border-color: var(--accent);
+            border-color: #505050;
         }
 
         .file-icon {
@@ -279,21 +308,34 @@
             margin-top: 2px;
         }
 
-        .import-btn {
+        .file-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
             background: none;
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 5px 10px;
+            padding: 4px 8px;
             color: var(--text-2);
             cursor: pointer;
             font-family: inherit;
             font-size: 10px;
             font-weight: 500;
             transition: all .15s;
-            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
 
-        .import-btn:hover {
+        .action-btn svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .action-btn:hover {
             background: var(--accent);
             border-color: var(--accent);
             color: #fff;
@@ -369,22 +411,6 @@
             flex: 1;
         }
 
-        .spinner {
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(255, 255, 255, .15);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin .6s linear infinite;
-            flex-shrink: 0;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
         /* ── Settings form ────────────────────── */
         .settings-body {
             display: flex;
@@ -439,19 +465,46 @@
             line-height: 1.5;
         }
 
+        .input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .input-row input {
+            flex: 1;
+        }
+
+        .input-row .btn {
+            flex: 0;
+            padding: 7px 12px;
+        }
+
         .divider {
             height: 1px;
             background: var(--border);
             border: none;
         }
 
-        .track-row {
+        .checkbox-row {
             display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        .track-row .field {
-            flex: 1;
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .checkbox-row label {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text);
+            text-transform: none;
+            letter-spacing: 0;
+            cursor: pointer;
         }
 
         .settings-footer {
@@ -483,14 +536,23 @@
 
             <!-- Toolbar -->
             <div class="toolbar">
-                <button class="btn btn-primary" id="importLatestBtn">
+                <button class="btn btn-primary" id="importLatestBtn" title="Import latest file to bin">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
                     Import Latest
+                    <span class="shortcut-hint" id="importShortcutHint">⌘I</span>
+                </button>
+                <button class="btn btn-insert" id="insertLatestBtn" title="Import and insert latest at playhead">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                    Insert Latest
+                    <span class="shortcut-hint" id="insertShortcutHint">⌘⇧I</span>
                 </button>
                 <button class="btn btn-secondary" id="refreshBtn" title="Refresh file list">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -498,7 +560,6 @@
                         <polyline points="23 4 23 10 17 10" />
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                     </svg>
-                    Refresh
                 </button>
             </div>
 
@@ -531,9 +592,12 @@
                     <!-- Watch folder -->
                     <div class="field">
                         <label>Audio Files Folder</label>
-                        <input type="text" id="folderPathInput" placeholder="/Users/you/Documents/VO-Files">
-                        <span class="field-hint">This is the same folder you configured in the Google Docs plugin. All
-                            generated <code>AutoVO_</code> files will be listed here.</span>
+                        <div class="input-row">
+                            <input type="text" id="folderPathInput" placeholder="/Users/you/Downloads">
+                            <button class="btn btn-secondary" id="browseBtn">Browse…</button>
+                        </div>
+                        <span class="field-hint">Set this to the folder where your audio files are
+                            (e.g. your browser's Downloads folder).</span>
                     </div>
 
                     <hr class="divider">
@@ -556,19 +620,57 @@
 
                     <hr class="divider">
 
-                    <!-- Max files to show -->
+                    <!-- Max files to scan -->
                     <div class="field">
-                        <label>Max Files to Show</label>
-                        <input type="number" id="maxFilesInput" value="5" min="1" max="100">
-                        <span class="field-hint">How many recent audio files to display in the file list. Lower values
-                            load faster if your folder has many files.</span>
+                        <label>Max Files to Scan</label>
+                        <select id="maxFilesSelect">
+                            <option value="5">5</option>
+                            <option value="500" selected>500</option>
+                            <option value="0">All files in folder</option>
+                            <option value="custom">Custom…</option>
+                        </select>
+                        <input type="number" id="maxFilesCustomInput" value="100" min="1" max="10000"
+                            style="display:none; margin-top: 4px;" placeholder="Enter a number">
+                        <span class="field-hint">How many files to scan when loading the file list.
+                            Lower values load faster for folders with many files.</span>
                     </div>
+
+                    <hr class="divider">
+
+                    <!-- Refresh before latest -->
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="refreshBeforeLatest" checked>
+                        <label for="refreshBeforeLatest">Refresh file list before Import/Insert Latest</label>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="field">
+                        <label>Global Keyboard Shortcuts</label>
+                        <div style="margin-top: 4px; color: var(--text-2); line-height: 1.4;">
+                            You can now set native, global Premiere shortcuts for Insert/Import!<br><br>
+                            1. Go to <b>Edit</b> > <b>Keyboard Shortcuts</b> (or Premiere Pro > Keyboard Shortcuts on
+                            Mac).<br>
+                            2. Search for <b>AN: Insert Latest</b> or <b>AN: Import Latest</b>.<br>
+                            3. Assign any key combination you want.<br>
+                            <br>
+                            <i>Note: They will work anywhere in Premiere, as long as this main panel is open in your
+                                workspace.</i>
+                        </div>
+                        <div style="margin-top: 14px;">
+                            <button class="btn btn-secondary" id="resetSettingsBtn"
+                                style="color: var(--error); border-color: rgba(255,107,107,0.3); width: 100%;"
+                                type="button">Reset All Settings</button>
+                        </div>
+                    </div>
+
+
 
                 </div>
             </div>
 
             <div class="settings-footer">
-                <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+                <button class="btn btn-primary" id="saveSettingsBtn" type="button">Save Settings</button>
             </div>
         </div>
 
