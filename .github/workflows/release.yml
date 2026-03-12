@@ -25,5 +25,13 @@ jobs:
         with:
           files: auto-narration-${{ github.ref_name }}.zip
           generate_release_notes: false
+          body: |
+            1. Download auto-narration-${{ github.ref_name }}.zip
+            2. Do **not** use "Source code (zip)" — use the release zip.
+            3. Unzip the file (double-click it). Put the folder somewhere easy to find (e.g. **Desktop**).
+            4. Open that folder. You should see two folders inside: **`chrome-extension`** and **`premiere-extension`**, plus **`README.md`**.
+            **You're good when:** You have one folder on your Desktop (or wherever) with `chrome-extension` and `premiere-extension` inside it.
+
+            Follow instructions here: https://github.com/Dylanyz/auto-narration
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
