@@ -85,11 +85,8 @@ function importAndPlace(filePath, binPath, trackIndex, reimport, insertMode) {
     // Default to overwrite if mode is missing or unrecognised
     var mode = insertMode || 'overwrite';
 
-    if (mode === 'ripple_sequence') {
-      // Ripple every track in the sequence (video + all audio move forward together)
-      sequence.insertClip(projectItem, playhead.seconds, trackIndex, 0);
-    } else if (mode === 'ripple_track') {
-      // Ripple only this audio track — downstream clips on this track shift forward
+    if (mode === 'ripple_track') {
+      // Insert — shifts downstream clips on this audio track forward
       track.insertClip(projectItem, playhead.seconds);
     } else {
       // Overwrite (default) — place clip at playhead, replace anything underneath,
