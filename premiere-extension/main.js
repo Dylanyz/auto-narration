@@ -60,6 +60,7 @@ var settings = {
     maxFiles: 500,        // 0 = scan all
     refreshBeforeLatest: true,
     reimportOnInsert: false,
+    insertMode: 'overwrite', // 'overwrite' | 'ripple_track' | 'ripple_sequence'
     shortcuts: {
         importLatest: null,
         insertLatest: null
@@ -201,6 +202,7 @@ function populateSettingsForm() {
     document.getElementById('trackIndexInput').value = settings.trackIndex + 1;
     document.getElementById('refreshBeforeLatest').checked = settings.refreshBeforeLatest;
     document.getElementById('reimportOnInsert').checked = settings.reimportOnInsert === true;
+    document.getElementById('insertModeSelect').value = settings.insertMode || 'overwrite';
 
     // Max files dropdown
     var select = document.getElementById('maxFilesSelect');
@@ -227,6 +229,7 @@ function saveSettings() {
     settings.trackIndex = Math.max(0, parseInt(document.getElementById('trackIndexInput').value, 10) - 1);
     settings.refreshBeforeLatest = document.getElementById('refreshBeforeLatest').checked;
     settings.reimportOnInsert = document.getElementById('reimportOnInsert').checked;
+    settings.insertMode = document.getElementById('insertModeSelect').value || 'overwrite';
 
     // Max files
     var selectVal = document.getElementById('maxFilesSelect').value;
@@ -486,10 +489,11 @@ function insertFile(file) {
     var binPath = settings.binPath || '';
     var trackIndex = settings.trackIndex;
     var reimport = settings.reimportOnInsert === true;
+    var insertMode = settings.insertMode || 'overwrite';
     var jsxPath = file.fullPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     var jsxBin = binPath.replace(/'/g, "\\'");
 
-    var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ", " + (reimport ? "true" : "false") + ")";
+    var script = "importAndPlace('" + jsxPath + "', '" + jsxBin + "', " + trackIndex + ", " + (reimport ? "true" : "false") + ", '" + insertMode + "')";
 
     return evalScript(script).then(function (result) {
         if (result === 'DEV_MODE') {
@@ -734,6 +738,7 @@ function resetSettings() {
             maxFiles: 500,
             refreshBeforeLatest: true,
             reimportOnInsert: false,
+            insertMode: 'overwrite',
             shortcuts: { importLatest: null, insertLatest: null }
         };
         loadSettings();

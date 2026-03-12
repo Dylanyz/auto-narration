@@ -17,11 +17,12 @@
  * @param {string}  binPath    - Slash-separated bin path, e.g. "VO/Temp"
  *                                Empty string = project root
  * @param {number}  trackIndex - 0-based audio track index
- * @param {boolean} reimport   - If true, always import (current behaviour).
- *                                If false, reuse existing item in bin if found.
+ * @param {boolean} reimport   - If true, always import; if false, reuse existing bin item.
+ * @param {string}  insertMode - "overwrite" | "ripple_track" | "ripple_sequence"
+ *                                Defaults to "overwrite" if omitted.
  * @returns {string} "OK" on success, or an error message
  */
-function importAndPlace(filePath, binPath, trackIndex, reimport) {
+function importAndPlace(filePath, binPath, trackIndex, reimport, insertMode) {
   try {
     var project = app.project;
     var sequence = project.activeSequence;
@@ -81,8 +82,20 @@ function importAndPlace(filePath, binPath, trackIndex, reimport) {
     var track = tracks[trackIndex];
     var playhead = sequence.getPlayerPosition();
 
-    // Insert clip at playhead (pushes downstream clips forward)
-    track.insertClip(projectItem, playhead.seconds);
+    // Default to overwrite if mode is missing or unrecognised
+    var mode = insertMode || 'overwrite';
+
+    if (mode === 'ripple_sequence') {
+      // Ripple every track in the sequence (video + all audio move forward together)
+      sequence.insertClip(projectItem, playhead.seconds, trackIndex, 0);
+    } else if (mode === 'ripple_track') {
+      // Ripple only this audio track — downstream clips on this track shift forward
+      track.insertClip(projectItem, playhead.seconds);
+    } else {
+      // Overwrite (default) — place clip at playhead, replace anything underneath,
+      // leave all other clips exactly where they are
+      track.overwriteClip(projectItem, playhead.seconds);
+    }
 
     return 'OK';
 
