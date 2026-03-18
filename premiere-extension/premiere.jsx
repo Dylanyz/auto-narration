@@ -6,6 +6,13 @@
  * access to the Premiere DOM (app.project, sequences, bins, etc.)
  */
 
+// Polyfill for String.prototype.trim (not available in all ExtendScript versions)
+if (typeof String.prototype.trim !== 'function') {
+  String.prototype.trim = function () {
+    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+  };
+}
+
 // ─────────────────────────────────────────────────────────────
 //  Entry point called from the panel
 // ─────────────────────────────────────────────────────────────
@@ -38,6 +45,7 @@ function importAndPlace(filePath, binPath, trackIndex, reimport, insertMode) {
     }
 
     // Resolve / create target bin
+    binPath = (binPath != null) ? String(binPath) : '';
     var targetBin = binPath && binPath.trim()
       ? getOrCreateBin(project.rootItem, binPath.trim())
       : project.rootItem;
@@ -209,6 +217,7 @@ function importOnly(filePath, binPath) {
       return 'ERROR: File not found: ' + filePath;
     }
 
+    binPath = (binPath != null) ? String(binPath) : '';
     var targetBin = binPath && binPath.trim()
       ? getOrCreateBin(project.rootItem, binPath.trim())
       : project.rootItem;
